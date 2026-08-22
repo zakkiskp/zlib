@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =======================================================
+   DESIGN TOKENS — Deep Dark Zinc (#09090b / #121215)
+   & Clean Modern Light, disatukan lewat CSS variable RGB
+   supaya bisa dipakai dengan opacity modifier Tailwind
+   (contoh: bg-accent/10, border-border/60, dst).
+   ======================================================= */
+:root {
+    --base: 250 250 250; /* zinc-50  — app background (light) */
+    --surface: 255 255 255; /* white     — sidebar/topbar/card  */
+    --surface-2: 244 244 245; /* zinc-100  — hover state          */
+    --border: 228 228 231; /* zinc-200  — subtle border         */
+    --text-primary: 24 24 27; /* zinc-900  */
+    --text-secondary: 113 113 122; /* zinc-500  */
+
+    --accent-500: 16 185 129; /* default: emerald */
+    --accent-600: 5 150 105;
+}
+
+.dark {
+    --base: 9 9 11; /* #09090b — zinc-950 */
+    --surface: 18 18 21; /* #121215 */
+    --surface-2: 24 24 27; /* zinc-900 */
+    --border: 39 39 42; /* zinc-800 (dipakai dengan /60 di komponen) */
+    --text-primary: 250 250 250;
+    --text-secondary: 161 161 170; /* zinc-400 */
+}
+
+/* 4 pilihan warna aksen — tinggal ganti attribute data-accent di <html> */
+[data-accent='emerald'] {
+    --accent-500: 16 185 129;
+    --accent-600: 5 150 105;
+}
+[data-accent='indigo'] {
+    --accent-500: 99 102 241;
+    --accent-600: 79 70 229;
+}
+[data-accent='violet'] {
+    --accent-500: 139 92 246;
+    --accent-600: 124 58 237;
+}
+[data-accent='amber'] {
+    --accent-500: 245 158 11;
+    --accent-600: 217 119 6;
+}
+
+html {
+    @apply antialiased;
+}
+
+body {
+    @apply bg-base text-ink transition-colors duration-200;
+}
+
+/* Glassmorphism utility dipakai di Topbar & dropdown */
+.glass {
+    @apply bg-surface/70 backdrop-blur-md;
+}
+
+/* Scrollbar tipis, senada tema — bukan default browser yang tebal */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+}
+
+/* Hormati preferensi pengguna yang sensitif terhadap animasi */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Cetak E-KTA: cuma tampilkan kartu itu, sembunyikan sidebar/topbar/dsb.
+   Dipicu oleh window.print() di halaman Profil. */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #ekta-card,
+    #ekta-card * {
+        visibility: visible;
+    }
+    #ekta-card {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        box-shadow: none !important;
+    }
+}
