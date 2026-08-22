@@ -1,9 +1,8 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useConfirm } from '@/Hooks/useConfirm';
-import { resolveMediaUrl, inputClass } from '@/Utils/ui';
+import { inputClass } from '@/Utils/ui';
 import {
   Megaphone,
   Plus,
@@ -24,19 +23,45 @@ const TYPE_META = {
   warning: { label: 'Peringatan', icon: AlertTriangle, className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
 };
 
+function formatDateForInput(dateString) {
+  if (!dateString) return '';
+  if (typeof dateString === 'string') {
+    return dateString.split('T')[0].split(' ')[0];
+  }
+  return '';
+}
+
 function AnnouncementModal({ open, onClose, editingItem }) {
   const fileRef = useRef(null);
-  const [preview, setPreview] = useState(resolveMediaUrl(editingItem?.banner_image));
+  const [preview, setPreview] = useState(null);
 
   const form = useForm({
-    title: editingItem?.title || '',
-    content: editingItem?.content || '',
-    type: editingItem?.type || 'info',
-    start_date: editingItem?.start_date || '',
-    end_date: editingItem?.end_date || '',
-    is_active: editingItem?.is_active ?? true,
+    title: '',
+    content: '',
+    type: 'info',
+    start_date: '',
+    end_date: '',
+    is_active: true,
     banner_image: null,
   });
+
+  useEffect(() => {
+    if (editingItem) {
+      form.setData({
+        title: editingItem.title || '',
+        content: editingItem.content || '',
+        type: editingItem.type || 'info',
+        start_date: formatDateForInput(editingItem.start_date),
+        end_date: formatDateForInput(editingItem.end_date),
+        is_active: editingItem.is_active ?? true,
+        banner_image: null,
+      });
+      setPreview(editingItem.banner_image ? (editingItem.banner_image.startsWith('http') ? editingItem.banner_image : `/storage/${editingItem.banner_image}`) : null);
+    } else {
+      form.reset();
+      setPreview(null);
+    }
+  }, [editingItem, open]);
 
   function handleFile(e) {
     const file = e.target.files?.[0];
@@ -48,7 +73,10 @@ function AnnouncementModal({ open, onClose, editingItem }) {
   function submit(e) {
     e.preventDefault();
     if (editingItem) {
-      form.transform((data) => ({ ...data, _method: 'put' }));
+      form.transform((data) => ({
+        ...data,
+        _method: 'PUT',
+      }));
       form.post(route('admin.announcements.update', editingItem.id), {
         forceFormData: true,
         preserveScroll: true,
@@ -95,14 +123,15 @@ function AnnouncementModal({ open, onClose, editingItem }) {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-muted mb-1.5">Banner Gambar</label>
+              {/* Kontainer preview tanpa background abu-abu sisa */}
               <div
                 onClick={() => fileRef.current?.click()}
-                className="cursor-pointer rounded-xl border-2 border-dashed border-border hover:border-accent transition-colors h-32 flex items-center justify-center overflow-hidden bg-base"
+                className="cursor-pointer rounded-xl border-2 border-dashed border-border hover:border-accent transition-colors flex items-center justify-center overflow-hidden p-2 bg-transparent"
               >
                 {preview ? (
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={preview} alt="Preview" className="w-auto h-auto max-h-72 object-contain rounded-lg mx-auto" />
                 ) : (
-                  <div className="text-center text-muted">
+                  <div className="text-center text-muted py-8">
                     <ImagePlus className="w-6 h-6 mx-auto mb-1" />
                     <span className="text-xs">Klik untuk upload banner</span>
                   </div>
@@ -166,7 +195,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
                 <input
                   type="date"
                   className={inputClass}
-                  value={form.data.start_date || ''}
+                  value={form.data.start_date}
                   onChange={(e) => form.setData('start_date', e.target.value)}
                 />
               </div>
@@ -175,7 +204,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
                 <input
                   type="date"
                   className={inputClass}
-                  value={form.data.end_date || ''}
+                  value={form.data.end_date}
                   onChange={(e) => form.setData('end_date', e.target.value)}
                 />
                 {form.errors.end_date && <p className="mt-1 text-xs text-red-500">{form.errors.end_date}</p>}
@@ -209,7 +238,10 @@ function AnnouncementModal({ open, onClose, editingItem }) {
 function AnnouncementCard({ item, onEdit, onDelete }) {
   const meta = TYPE_META[item.type] || TYPE_META.info;
   const Icon = meta.icon;
-  const bannerUrl = resolveMediaUrl(item.banner_image);
+  
+  const bannerUrl = item.banner_image 
+    ? (item.banner_image.startsWith('http') ? item.banner_image : `/storage/${item.banner_image}`)
+    : null;
 
   return (
     <motion.div
@@ -217,39 +249,40 @@ function AnnouncementCard({ item, onEdit, onDelete }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
-      className="rounded-2xl border border-border/70 bg-surface/70 backdrop-blur-md overflow-hidden group"
+      className="rounded-2xl border border-border/70 bg-surface/70 backdrop-blur-md overflow-hidden group flex flex-col"
     >
-      <div className="h-32 bg-surface2 relative overflow-hidden">
+      {/* Kontainer card menyesuaikan ukuran foto secara dinamis tanpa background sisa */}
+      <div className="w-full relative overflow-hidden flex items-center justify-center p-3 bg-transparent">
         {bannerUrl ? (
           <img
             src={bannerUrl}
             alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-auto h-auto max-h-80 object-contain rounded-xl group-hover:scale-[1.02] transition-transform duration-300 mx-auto"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted">
+          <div className="w-full h-32 flex items-center justify-center text-muted">
             <Megaphone className="w-8 h-8" />
           </div>
         )}
         <span
-          className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md ${meta.className}`}
+          className={`absolute top-4 left-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md shadow-sm ${meta.className}`}
         >
           <Icon className="w-3 h-3" />
           {meta.label}
         </span>
         {!item.is_active && (
-          <span className="absolute top-2.5 right-2.5 rounded-full bg-zinc-900/70 text-white text-[10px] font-semibold px-2 py-1">
+          <span className="absolute top-4 right-4 rounded-full bg-zinc-900/70 text-white text-[10px] font-semibold px-2 py-1 shadow-sm">
             Nonaktif
           </span>
         )}
       </div>
-      <div className="p-4">
+      <div className="p-4 mt-auto border-t border-border/40">
         <h4 className="font-semibold text-sm text-ink line-clamp-1">{item.title}</h4>
         <p className="text-xs text-muted mt-1 line-clamp-2">{item.content}</p>
         <div className="mt-3 flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-[11px] text-muted">
             <CalendarDays className="w-3 h-3" />
-            {item.start_date || '—'} s/d {item.end_date || '—'}
+            {formatDateForInput(item.start_date) || '—'} s/d {formatDateForInput(item.end_date) || '—'}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -274,7 +307,10 @@ function AnnouncementCard({ item, onEdit, onDelete }) {
 export default function AnnouncementIndex({ announcements }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const confirm = useConfirm();
+  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   const { flash } = usePage().props;
 
   function openCreate() {
@@ -287,15 +323,20 @@ export default function AnnouncementIndex({ announcements }) {
     setModalOpen(true);
   }
 
-  async function handleDelete(item) {
-    const ok = await confirm({
-      title: 'Hapus Pengumuman?',
-      message: `Pengumuman "${item.title}" akan dihapus permanen dan tidak akan tampil lagi di dashboard anggota.`,
-      confirmLabel: 'Ya, Hapus',
-      variant: 'danger',
-    });
-    if (ok) {
-      router.delete(route('admin.announcements.destroy', item.id), { preserveScroll: true });
+  function confirmDelete(item) {
+    setItemToDelete(item);
+    setDeleteModalOpen(true);
+  }
+
+  function executeDelete() {
+    if (itemToDelete) {
+      router.delete(route('admin.announcements.destroy', itemToDelete.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          setItemToDelete(null);
+        },
+      });
     }
   }
 
@@ -340,7 +381,7 @@ export default function AnnouncementIndex({ announcements }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <AnimatePresence>
               {announcements.map((item) => (
-                <AnnouncementCard key={item.id} item={item} onEdit={openEdit} onDelete={handleDelete} />
+                <AnnouncementCard key={item.id} item={item} onEdit={openEdit} onDelete={confirmDelete} />
               ))}
             </AnimatePresence>
           </div>
@@ -352,6 +393,36 @@ export default function AnnouncementIndex({ announcements }) {
         onClose={() => setModalOpen(false)}
         editingItem={editingItem}
       />
+
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-surface border border-border shadow-2xl p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-ink mb-1">Peringatan</h3>
+            <p className="text-xs text-muted mb-6">
+              Yakin ingin menghapus pengumuman <span className="font-semibold text-ink">"{itemToDelete?.title}"</span>? Data yang dihapus tidak dapat dikembalikan.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-muted rounded-xl border border-border hover:bg-surface2 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={executeDelete}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-lg"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AuthenticatedLayout>
   );
 }

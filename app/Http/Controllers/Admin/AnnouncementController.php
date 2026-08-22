@@ -77,8 +77,8 @@ class AnnouncementController extends Controller
             'title' => ['required', 'string', 'max:150'],
             'content' => ['required', 'string'],
             'type' => ['required', 'in:info,promo,warning'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'is_active' => ['boolean'],
             'banner_image' => ['nullable', 'image', 'max:2048'],
         ]);
