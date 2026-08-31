@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Buku;
 use App\Models\KategoriBuku;
 use App\Models\Peminjaman;
-use App\Models\Pengumuman;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -48,10 +48,10 @@ class DashboardController extends Controller
         $anggotaBulanLalu = User::where('role', 'anggota')->whereBetween('created_at', [$bulanLalu, $bulanIni])->count();
 
         $stats = [
-            ['label' => 'Total Buku', 'value' => $totalBuku, 'delta' => $this->hitungDelta($bukuBulanLalu, $bukuBulanIni), 'icon' => 'BookMarked'],
-            ['label' => 'Total Anggota', 'value' => $totalAnggota, 'delta' => $this->hitungDelta($anggotaBulanLalu, $anggotaBulanIni), 'icon' => 'Users'],
-            ['label' => 'Peminjaman Aktif', 'value' => $peminjamanAktif, 'delta' => null, 'icon' => 'Clock'],
-            ['label' => 'Denda Belum Lunas', 'value' => $dendaBelumLunas, 'format' => 'rupiah', 'delta' => null, 'icon' => 'Banknote'],
+            ['label' => 'dashboard.admin.stat.totalBooks', 'value' => $totalBuku, 'delta' => $this->hitungDelta($bukuBulanLalu, $bukuBulanIni), 'icon' => 'BookMarked'],
+            ['label' => 'dashboard.admin.stat.totalMembers', 'value' => $totalAnggota, 'delta' => $this->hitungDelta($anggotaBulanLalu, $anggotaBulanIni), 'icon' => 'Users'],
+            ['label' => 'dashboard.admin.stat.activeLoans', 'value' => $peminjamanAktif, 'delta' => null, 'icon' => 'Clock'],
+            ['label' => 'dashboard.admin.stat.unpaidFines', 'value' => $dendaBelumLunas, 'format' => 'rupiah', 'delta' => null, 'icon' => 'Banknote'],
         ];
 
         // Tren peminjaman 6 bulan terakhir — untuk Gradient Area Line Chart
@@ -104,9 +104,9 @@ class DashboardController extends Controller
             ->count();
 
         $stats = [
-            ['label' => 'Transaksi Hari Ini', 'value' => $transaksiHariIni, 'icon' => 'Activity'],
-            ['label' => 'Menunggu Approval', 'value' => Peminjaman::where('status', 'menunggu_persetujuan')->count(), 'icon' => 'ClipboardCheck'],
-            ['label' => 'Buku Terlambat', 'value' => Peminjaman::where('status', 'terlambat')->count(), 'icon' => 'AlertTriangle'],
+            ['label' => 'dashboard.petugas.stat.todayTransactions', 'value' => $transaksiHariIni, 'icon' => 'Activity'],
+            ['label' => 'dashboard.petugas.stat.pendingApproval', 'value' => Peminjaman::where('status', 'menunggu_persetujuan')->count(), 'icon' => 'ClipboardCheck'],
+            ['label' => 'dashboard.petugas.stat.overdueBooks', 'value' => Peminjaman::where('status', 'terlambat')->count(), 'icon' => 'AlertTriangle'],
         ];
 
         $antrean = Peminjaman::with(['anggota:id,name,avatar_url', 'buku:id,judul_buku,cover_url'])
@@ -138,21 +138,29 @@ class DashboardController extends Controller
 
     private function dataAnggota(User $user): array
     {
-        $pengumuman = Pengumuman::where('is_active', true)
-            ->where(function ($q) {
-                $q->whereNull('tanggal_selesai')->orWhere('tanggal_selesai', '>=', today());
-            })
-            ->latest('tanggal_mulai')
-            ->first();
+        /**
+         * FIX BUG KRITIS: sebelumnya query ke model `Pengumuman` (tabel
+         * `pengumuman`, sisa skema Langkah 1) — sedangkan Admin membuat
+         * pengumuman lewat `Announcement` (tabel `announcements`, dibuat
+         * di Tahap 1 bersama fitur Announcement Manager). Dua tabel yang
+         * TIDAK PERNAH nyambung, makanya pengumuman Admin tidak pernah
+         * tampil di sini walau sudah dibuat & aktif. `Announcement::active()`
+         * di bawah adalah scope yang sudah ada di app/Models/Announcement.php
+         * (filter is_active + rentang tanggal tayang).
+         *
+         * Field di-mapping ke nama lama (judul/konten/gambar) supaya
+         * AnnouncementBanner.jsx TIDAK PERLU diubah sama sekali.
+         */
+        $pengumuman = Announcement::active()->latest('created_at')->first();
 
         $stats = [
             [
-                'label' => 'Peminjaman Aktif',
+                'label' => 'dashboard.anggota.stat.activeLoans',
                 'value' => Peminjaman::where('user_id', $user->id)->whereIn('status', ['dipinjam', 'terlambat'])->count(),
                 'icon' => 'Clock',
             ],
             [
-                'label' => 'Denda Belum Lunas',
+                'label' => 'dashboard.anggota.stat.unpaidFines',
                 'value' => (int) Peminjaman::where('user_id', $user->id)->where('status_denda', 'belum_lunas')->sum('denda'),
                 'format' => 'rupiah',
                 'icon' => 'Wallet',
@@ -168,9 +176,11 @@ class DashboardController extends Controller
 
         return [
             'pengumuman' => $pengumuman ? [
-                'judul' => $pengumuman->judul,
-                'konten' => $pengumuman->konten,
-                'gambar' => $pengumuman->gambar_url,
+                'id' => $pengumuman->id,
+                'judul' => $pengumuman->title,
+                'konten' => $pengumuman->content,
+                'gambar' => $pengumuman->banner_image,
+                'tipe' => $pengumuman->type,
             ] : null,
             'stats' => $stats,
             'rekomendasi' => $rekomendasi,

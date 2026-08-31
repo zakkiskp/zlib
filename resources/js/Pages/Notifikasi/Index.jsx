@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Pagination from '@/Components/Katalog/Pagination';
 import { CircleCheck, Clock3, Banknote, Megaphone, RefreshCw, Info } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const ICON_BY_TYPE = {
     jatuh_tempo: Clock3,
@@ -13,6 +14,7 @@ const ICON_BY_TYPE = {
 };
 
 function NotifikasiIndex({ notifikasi }) {
+    const { t } = useLanguage();
     const tandai = (id) => {
         router.post(`/notifikasi/${id}/tandai`, {}, { preserveScroll: true, preserveState: true });
     };
@@ -20,13 +22,13 @@ function NotifikasiIndex({ notifikasi }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Notifikasi</h2>
-                <p className="text-sm text-muted">Semua pemberitahuan yang pernah kamu terima.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('notifikasi.title')}</h2>
+                <p className="text-sm text-muted">{t('notifikasi.subtitle')}</p>
             </div>
 
             {notifikasi.data.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-12 text-center text-sm text-muted">
-                    Belum ada notifikasi.
+                    {t('notifikasi.empty')}
                 </div>
             ) : (
                 <div className="overflow-hidden rounded-2xl border border-border bg-surface">

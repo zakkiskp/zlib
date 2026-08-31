@@ -1,11 +1,21 @@
 import { useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EKTACard from '@/Components/Profil/EKTACard';
+import SearchableSelect from '@/Components/SearchableSelect';
+import { useLanguage } from '@/Contexts/LanguageContext';
 import { Camera, Printer } from 'lucide-react';
 
 function ProfilIndex({ user }) {
+    const { t } = useLanguage();
     const { errors } = usePage().props;
     const isPetugas = user.role === 'petugas';
+
+    const shiftOptions = [
+        { value: '', label: t('profil.shift.notset') },
+        { value: 'pagi', label: t('profil.shift.morning') },
+        { value: 'siang', label: t('profil.shift.afternoon') },
+        { value: 'malam', label: t('profil.shift.night') },
+    ];
 
     const form = useForm({
         name: user.name || '',
@@ -31,10 +41,8 @@ function ProfilIndex({ user }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">{isPetugas ? 'Profil & Shift' : 'Profil & E-KTA'}</h2>
-                <p className="text-sm text-muted">
-                    Kelola data diri{isPetugas ? ' dan jadwal shift kerjamu.' : ' dan kartu anggota digitalmu.'}
-                </p>
+                <h2 className="text-xl font-semibold text-ink">{isPetugas ? t('profil.petugas.title') : t('profil.anggota.title')}</h2>
+                <p className="text-sm text-muted">{isPetugas ? t('profil.petugas.subtitle') : t('profil.anggota.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
@@ -53,13 +61,13 @@ function ProfilIndex({ user }) {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-ink">{user.email}</p>
-                            <p className="text-xs text-muted">Klik ikon kamera untuk ganti foto</p>
+                            <p className="text-xs text-muted">{t('profil.changePhotoHint')}</p>
                         </div>
                     </div>
 
                     <form onSubmit={submit} className="space-y-3">
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Nama Lengkap</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('profil.field.name')}</label>
                             <input
                                 value={form.data.name}
                                 onChange={(e) => form.setData('name', e.target.value)}
@@ -68,7 +76,7 @@ function ProfilIndex({ user }) {
                             {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">No. Telepon</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('profil.field.phone')}</label>
                             <input
                                 value={form.data.phone}
                                 onChange={(e) => form.setData('phone', e.target.value)}
@@ -76,7 +84,7 @@ function ProfilIndex({ user }) {
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Alamat</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('profil.field.address')}</label>
                             <textarea
                                 value={form.data.alamat}
                                 onChange={(e) => form.setData('alamat', e.target.value)}
@@ -87,17 +95,16 @@ function ProfilIndex({ user }) {
 
                         {isPetugas && (
                             <div>
-                                <label className="text-xs font-medium uppercase tracking-wider text-muted">Shift Kerja</label>
-                                <select
-                                    value={form.data.shift_kerja}
-                                    onChange={(e) => form.setData('shift_kerja', e.target.value)}
-                                    className="mt-1.5 w-full rounded-lg border border-border bg-base px-3 py-2 text-sm text-ink focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                                >
-                                    <option value="">Belum ditentukan</option>
-                                    <option value="pagi">Pagi</option>
-                                    <option value="siang">Siang</option>
-                                    <option value="malam">Malam</option>
-                                </select>
+                                <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('profil.field.shift')}</label>
+                                <div className="mt-1.5">
+                                    <SearchableSelect
+                                        value={form.data.shift_kerja}
+                                        onChange={(val) => form.setData('shift_kerja', val)}
+                                        options={shiftOptions}
+                                        searchPlaceholder={t('common.search')}
+                                        emptyText={t('common.noResults')}
+                                    />
+                                </div>
                             </div>
                         )}
 
@@ -106,9 +113,9 @@ function ProfilIndex({ user }) {
                             disabled={form.processing}
                             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                         >
-                            {form.processing ? 'Menyimpan…' : 'Simpan Perubahan'}
+                            {form.processing ? t('profil.saving') : t('profil.save')}
                         </button>
-                        {form.recentlySuccessful && <span className="ml-3 text-xs text-emerald-500">Tersimpan!</span>}
+                        {form.recentlySuccessful && <span className="ml-3 text-xs text-emerald-500">{t('profil.saved')}</span>}
                     </form>
                 </div>
 
@@ -118,7 +125,7 @@ function ProfilIndex({ user }) {
                         onClick={() => window.print()}
                         className="mx-auto flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink hover:bg-surface2 print:hidden"
                     >
-                        <Printer size={15} /> Cetak / Download PDF
+                        <Printer size={15} /> {t('profil.print')}
                     </button>
                 </div>
             </div>

@@ -6,19 +6,21 @@ import ConfirmDialog from '@/Components/ConfirmDialog';
 import { useConfirm } from '@/Hooks/useConfirm';
 import { resolveMediaUrl } from '@/Utils/ui';
 import { useLanguage } from '@/Contexts/LanguageContext';
+import SearchableSelect from '@/Components/SearchableSelect';
 import { Search, KeyRound } from 'lucide-react';
-
-const ROLE_COLOR = {
-    admin: 'bg-red-500/10 text-red-500',
-    petugas: 'bg-amber-500/10 text-amber-500',
-    anggota: 'bg-accent/10 text-accent',
-};
 
 function UserIndex({ users, filters }) {
     const [q, setQ] = useState(filters.q || '');
     const debounceRef = useRef(null);
     const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
     const { t } = useLanguage();
+
+    const roleFilterOptions = ['', 'admin', 'petugas', 'anggota'];
+    const roleSelectOptions = [
+        { value: 'admin', label: 'Admin' },
+        { value: 'petugas', label: 'Petugas' },
+        { value: 'anggota', label: 'Anggota' },
+    ];
 
     const cari = (value, role) => {
         router.get(
@@ -44,7 +46,7 @@ function UserIndex({ users, filters }) {
     };
 
     const reset = async (id, nama) => {
-        const ok = await confirm('Reset Password?', `Password ${nama} akan direset ke "password123".`);
+        const ok = await confirm(t('adminuser.confirmReset.title'), t('adminuser.confirmReset.message', { nama }));
         if (ok) {
             router.post(`/admin/user/${id}/reset-password`, {}, { preserveScroll: true });
         }
@@ -53,8 +55,8 @@ function UserIndex({ users, filters }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">User & Role Management</h2>
-                <p className="text-sm text-muted">{users.total} akun terdaftar di sistem.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('adminuser.title')}</h2>
+                <p className="text-sm text-muted">{t('adminuser.subtitle', { total: users.total })}</p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -63,12 +65,12 @@ function UserIndex({ users, filters }) {
                     <input
                         value={q}
                         onChange={onSearch}
-                        placeholder="Cari nama atau email…"
+                        placeholder={t('adminuser.search.placeholder')}
                         className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
                     />
                 </div>
                 <div className="flex w-fit gap-1 rounded-lg border border-border bg-surface p-1">
-                    {['', 'admin', 'petugas', 'anggota'].map((r) => (
+                    {roleFilterOptions.map((r) => (
                         <button
                             key={r || 'semua'}
                             onClick={() => cari(q, r)}
@@ -76,7 +78,7 @@ function UserIndex({ users, filters }) {
                                 (filters.role || '') === r ? 'bg-accent/10 text-accent' : 'text-muted hover:text-ink'
                             }`}
                         >
-                            {r || 'Semua'}
+                            {r ? r.charAt(0).toUpperCase() + r.slice(1) : t('adminuser.filter.all')}
                         </button>
                     ))}
                 </div>
@@ -94,26 +96,26 @@ function UserIndex({ users, filters }) {
                             <p className="truncate text-sm font-medium text-ink">{u.name}</p>
                             <p className="truncate text-xs text-muted">{u.email}</p>
                         </div>
-                        <select
-                            value={u.role}
-                            onChange={(e) => ubahRole(u.id, e.target.value)}
-                            className={`shrink-0 rounded-lg border-0 px-2.5 py-1.5 text-xs font-medium capitalize ${ROLE_COLOR[u.role]}`}
-                        >
-                            <option value="admin">Admin</option>
-                            <option value="petugas">Petugas</option>
-                            <option value="anggota">Anggota</option>
-                        </select>
+                        <div className="w-32 shrink-0">
+                            <SearchableSelect
+                                value={u.role}
+                                onChange={(val) => ubahRole(u.id, val)}
+                                options={roleSelectOptions}
+                                searchPlaceholder={t('common.search')}
+                                emptyText={t('common.noResults')}
+                            />
+                        </div>
                         <button
                             onClick={() => ubahStatus(u.id, u.status === 'aktif' ? 'nonaktif' : 'aktif')}
                             className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                                 u.status === 'aktif' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-surface2 text-muted'
                             }`}
                         >
-                            {u.status === 'aktif' ? 'Aktif' : 'Nonaktif'}
+                            {u.status === 'aktif' ? t('adminuser.status.active') : t('adminuser.status.inactive')}
                         </button>
                         <button
                             onClick={() => reset(u.id, u.name)}
-                            title="Reset Password"
+                            title={t('adminuser.resetPassword')}
                             className="shrink-0 rounded-lg border border-border p-2 text-muted hover:bg-surface2 hover:text-ink"
                         >
                             <KeyRound size={14} />

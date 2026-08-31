@@ -5,6 +5,14 @@ import { forwardRef } from 'react';
  * Trik: placeholder=" " (spasi, bukan kosong) dikombinasikan dengan
  * variant Tailwind `peer-[&:not(:placeholder-shown)]` supaya label naik
  * begitu ada isi ATAU saat fokus.
+ *
+ * FIX BUG (2 ikon mata di password field): browser modern (Edge, dan
+ * beberapa versi Chrome) otomatis menyuntikkan ikon "reveal password"
+ * bawaannya sendiri ke <input type="password">, terpisah dari ikon
+ * custom yang kita render lewat prop `rightElement`. Hasilnya 2 ikon
+ * mata tumpang tindih. Baris `[&::-ms-reveal]:hidden` dkk di className
+ * input mematikan ikon bawaan browser itu, supaya cuma ikon custom kita
+ * yang tampil.
  */
 const FloatingInput = forwardRef(function FloatingInput(
   { id, label, type = 'text', value, onChange, error, icon: Icon, autoComplete, rightElement, ...props },
@@ -28,7 +36,7 @@ const FloatingInput = forwardRef(function FloatingInput(
             error
               ? 'border-red-400 focus:border-red-500 focus:ring-red-500/30'
               : 'border-border focus:border-accent focus:ring-accent/30'
-          } ${Icon ? 'pl-10' : 'pl-3.5'} ${rightElement ? 'pr-10' : 'pr-3.5'} pt-5 pb-2 text-sm text-ink placeholder-transparent shadow-sm focus:outline-none focus:ring-2 transition-all`}
+          } ${Icon ? 'pl-10' : 'pl-3.5'} ${rightElement ? 'pr-10' : 'pr-3.5'} pt-5 pb-2 text-sm text-ink placeholder-transparent shadow-sm focus:outline-none focus:ring-2 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden [&::-webkit-textfield-decoration-container]:hidden`}
           {...props}
         />
         <label

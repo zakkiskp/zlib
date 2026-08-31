@@ -6,12 +6,14 @@ import Pagination from '@/Components/Katalog/Pagination';
 import ConfirmDialog from '@/Components/ConfirmDialog';
 import { useConfirm } from '@/Hooks/useConfirm';
 import { Trash2 } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function UlasanSaya({ ulasan }) {
+    const { t } = useLanguage();
     const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
 
     const hapus = async (id) => {
-        const ok = await confirm('Hapus Ulasan?', 'Ulasan yang sudah dihapus tidak bisa dikembalikan.');
+        const ok = await confirm(t('ulasan.confirmDelete.title'), t('ulasan.confirmDelete.message'));
         if (ok) {
             router.delete(`/ulasan/${id}`, { preserveScroll: true });
         }
@@ -20,13 +22,13 @@ function UlasanSaya({ ulasan }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Ulasan Saya</h2>
-                <p className="text-sm text-muted">Kelola review dan rating yang pernah kamu berikan.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('ulasan.title')}</h2>
+                <p className="text-sm text-muted">{t('ulasan.subtitle')}</p>
             </div>
 
             {ulasan.data.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-12 text-center text-sm text-muted">
-                    Belum ada ulasan. Pinjam buku dan beri ulasan lewat halaman Katalog.
+                    {t('ulasan.empty')}
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -39,7 +41,7 @@ function UlasanSaya({ ulasan }) {
                                     <StarRating rating={u.rating} size={13} />
                                 </div>
                                 <p className="mt-1.5 text-sm text-muted">
-                                    {u.komentar || <span className="italic">Tanpa komentar</span>}
+                                    {u.komentar || <span className="italic">{t('ulasan.noComment')}</span>}
                                 </p>
                             </div>
                             <button onClick={() => hapus(u.id)} className="shrink-0 text-muted hover:text-red-500">

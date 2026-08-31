@@ -2,6 +2,8 @@ import { useRef, useState, useEffect } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import SearchableSelect from '@/Components/SearchableSelect';
+import { useLanguage } from '@/Contexts/LanguageContext';
 import { inputClass } from '@/Utils/ui';
 import {
   Megaphone,
@@ -17,10 +19,13 @@ import {
   Loader2,
 } from 'lucide-react';
 
-const TYPE_META = {
-  info: { label: 'Info', icon: Info, className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  promo: { label: 'Promo', icon: Sparkles, className: 'bg-accent/10 text-accent' },
-  warning: { label: 'Peringatan', icon: AlertTriangle, className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
+// TASK #1: <select> dihapus dari sini, dipindah ke dalam komponen supaya
+// bisa akses t() untuk label opsi (Info/Promo/Peringatan).
+const TYPE_ICON = { info: Info, promo: Sparkles, warning: AlertTriangle };
+const TYPE_CLASS = {
+  info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  promo: 'bg-accent/10 text-accent',
+  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
 };
 
 function formatDateForInput(dateString) {
@@ -31,7 +36,12 @@ function formatDateForInput(dateString) {
   return '';
 }
 
-function AnnouncementModal({ open, onClose, editingItem }) {
+function resolveBannerUrl(path) {
+  if (!path) return null;
+  return path.startsWith('http') ? path : `/storage/${path}`;
+}
+
+function AnnouncementModal({ open, onClose, editingItem, t }) {
   const fileRef = useRef(null);
   const [preview, setPreview] = useState(null);
 
@@ -45,6 +55,12 @@ function AnnouncementModal({ open, onClose, editingItem }) {
     banner_image: null,
   });
 
+  const typeOptions = [
+    { value: 'info', label: t('announcement.type.info') },
+    { value: 'promo', label: t('announcement.type.promo') },
+    { value: 'warning', label: t('announcement.type.warning') },
+  ];
+
   useEffect(() => {
     if (editingItem) {
       form.setData({
@@ -56,11 +72,12 @@ function AnnouncementModal({ open, onClose, editingItem }) {
         is_active: editingItem.is_active ?? true,
         banner_image: null,
       });
-      setPreview(editingItem.banner_image ? (editingItem.banner_image.startsWith('http') ? editingItem.banner_image : `/storage/${editingItem.banner_image}`) : null);
+      setPreview(resolveBannerUrl(editingItem.banner_image));
     } else {
       form.reset();
       setPreview(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingItem, open]);
 
   function handleFile(e) {
@@ -113,7 +130,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
         >
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-base font-semibold text-ink">
-              {editingItem ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}
+              {editingItem ? t('announcement.modal.edit') : t('announcement.modal.create')}
             </h3>
             <button type="button" onClick={onClose} className="text-muted hover:text-ink">
               <X className="w-5 h-5" />
@@ -122,8 +139,8 @@ function AnnouncementModal({ open, onClose, editingItem }) {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Banner Gambar</label>
-              {/* Kontainer preview tanpa background abu-abu sisa */}
+              <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.banner')}</label>
+              {/* Kontainer preview tanpa background abu-abu sisa (fix Anda, dipertahankan) */}
               <div
                 onClick={() => fileRef.current?.click()}
                 className="cursor-pointer rounded-xl border-2 border-dashed border-border hover:border-accent transition-colors flex items-center justify-center overflow-hidden p-2 bg-transparent"
@@ -133,7 +150,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
                 ) : (
                   <div className="text-center text-muted py-8">
                     <ImagePlus className="w-6 h-6 mx-auto mb-1" />
-                    <span className="text-xs">Klik untuk upload banner</span>
+                    <span className="text-xs">{t('announcement.field.bannerHint')}</span>
                   </div>
                 )}
               </div>
@@ -142,7 +159,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Judul</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.title')}</label>
               <input
                 type="text"
                 className={inputClass}
@@ -153,7 +170,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Isi Pengumuman</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.content')}</label>
               <textarea
                 rows={3}
                 className={inputClass}
@@ -165,16 +182,15 @@ function AnnouncementModal({ open, onClose, editingItem }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">Tipe</label>
-                <select
-                  className={inputClass}
+                <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.type')}</label>
+                {/* TASK #1: <select> HTML diganti SearchableSelect standar (v2, fix z-index) */}
+                <SearchableSelect
                   value={form.data.type}
-                  onChange={(e) => form.setData('type', e.target.value)}
-                >
-                  <option value="info">Info</option>
-                  <option value="promo">Promo</option>
-                  <option value="warning">Peringatan</option>
-                </select>
+                  onChange={(val) => form.setData('type', val)}
+                  options={typeOptions}
+                  searchPlaceholder={t('announcement.searchType.placeholder')}
+                  emptyText={t('common.noResults')}
+                />
               </div>
               <div className="flex items-end pb-2.5">
                 <label className="flex items-center gap-2 text-sm text-ink cursor-pointer select-none">
@@ -184,23 +200,24 @@ function AnnouncementModal({ open, onClose, editingItem }) {
                     onChange={(e) => form.setData('is_active', e.target.checked)}
                     className="w-4 h-4 rounded border-border text-accent focus:ring-accent"
                   />
-                  Aktifkan sekarang
+                  {t('announcement.field.activate')}
                 </label>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">Tanggal Mulai</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.startDate')}</label>
                 <input
                   type="date"
                   className={inputClass}
                   value={form.data.start_date}
                   onChange={(e) => form.setData('start_date', e.target.value)}
                 />
+                {form.errors.start_date && <p className="mt-1 text-xs text-red-500">{form.errors.start_date}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">Tanggal Berakhir</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.endDate')}</label>
                 <input
                   type="date"
                   className={inputClass}
@@ -218,7 +235,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
               onClick={onClose}
               className="px-4 py-2.5 text-sm font-medium text-muted rounded-lg border border-border hover:bg-surface2 transition-colors"
             >
-              Batal
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -226,7 +243,7 @@ function AnnouncementModal({ open, onClose, editingItem }) {
               className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-accent rounded-lg shadow-glow-accent hover:brightness-110 disabled:opacity-60 transition-all"
             >
               {form.processing && <Loader2 className="w-4 h-4 animate-spin" />}
-              {editingItem ? 'Simpan Perubahan' : 'Publikasikan'}
+              {editingItem ? t('announcement.save.edit') : t('announcement.save.create')}
             </button>
           </div>
         </motion.form>
@@ -235,13 +252,11 @@ function AnnouncementModal({ open, onClose, editingItem }) {
   );
 }
 
-function AnnouncementCard({ item, onEdit, onDelete }) {
-  const meta = TYPE_META[item.type] || TYPE_META.info;
-  const Icon = meta.icon;
-  
-  const bannerUrl = item.banner_image 
-    ? (item.banner_image.startsWith('http') ? item.banner_image : `/storage/${item.banner_image}`)
-    : null;
+function AnnouncementCard({ item, onEdit, onDelete, t }) {
+  const Icon = TYPE_ICON[item.type] || Info;
+  const badgeClass = TYPE_CLASS[item.type] || TYPE_CLASS.info;
+  const typeLabel = t(`announcement.type.${item.type}`);
+  const bannerUrl = resolveBannerUrl(item.banner_image);
 
   return (
     <motion.div
@@ -251,7 +266,7 @@ function AnnouncementCard({ item, onEdit, onDelete }) {
       exit={{ opacity: 0, y: -12 }}
       className="rounded-2xl border border-border/70 bg-surface/70 backdrop-blur-md overflow-hidden group flex flex-col"
     >
-      {/* Kontainer card menyesuaikan ukuran foto secara dinamis tanpa background sisa */}
+      {/* Kontainer card menyesuaikan ukuran foto secara dinamis (fix Anda, dipertahankan) */}
       <div className="w-full relative overflow-hidden flex items-center justify-center p-3 bg-transparent">
         {bannerUrl ? (
           <img
@@ -265,14 +280,14 @@ function AnnouncementCard({ item, onEdit, onDelete }) {
           </div>
         )}
         <span
-          className={`absolute top-4 left-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md shadow-sm ${meta.className}`}
+          className={`absolute top-4 left-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur-md shadow-sm ${badgeClass}`}
         >
           <Icon className="w-3 h-3" />
-          {meta.label}
+          {typeLabel}
         </span>
         {!item.is_active && (
           <span className="absolute top-4 right-4 rounded-full bg-zinc-900/70 text-white text-[10px] font-semibold px-2 py-1 shadow-sm">
-            Nonaktif
+            {t('announcement.badge.inactive')}
           </span>
         )}
       </div>
@@ -305,9 +320,12 @@ function AnnouncementCard({ item, onEdit, onDelete }) {
 }
 
 export default function AnnouncementIndex({ announcements }) {
+  const { t } = useLanguage();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  
+
+  // Modal hapus custom (pengganti useConfirm yang bermasalah) — pola ini
+  // PERSIS seperti fix Anda, tidak diubah sama sekali.
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
@@ -342,7 +360,7 @@ export default function AnnouncementIndex({ announcements }) {
 
   return (
     <AuthenticatedLayout>
-      <Head title="Pengumuman" />
+      <Head title={t('announcement.title')} />
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -351,10 +369,8 @@ export default function AnnouncementIndex({ announcements }) {
               <Megaphone className="w-5 h-5 text-accent" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-ink">Announcement & Broadcast Manager</h1>
-              <p className="text-sm text-muted">
-                Kelola banner pengumuman yang tampil di dashboard Anggota.
-              </p>
+              <h1 className="text-xl font-bold text-ink">{t('announcement.title')}</h1>
+              <p className="text-sm text-muted">{t('announcement.subtitle')}</p>
             </div>
           </div>
           <button
@@ -362,7 +378,7 @@ export default function AnnouncementIndex({ announcements }) {
             className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-glow-accent hover:brightness-110 active:scale-[0.98] transition-all"
           >
             <Plus className="w-4 h-4" />
-            Buat Pengumuman
+            {t('announcement.create')}
           </button>
         </div>
 
@@ -375,24 +391,20 @@ export default function AnnouncementIndex({ announcements }) {
         {announcements.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted">
             <Megaphone className="w-8 h-8 mx-auto mb-2" />
-            Belum ada pengumuman. Klik "Buat Pengumuman" untuk membuat yang pertama.
+            {t('announcement.empty')}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <AnimatePresence>
               {announcements.map((item) => (
-                <AnnouncementCard key={item.id} item={item} onEdit={openEdit} onDelete={confirmDelete} />
+                <AnnouncementCard key={item.id} item={item} onEdit={openEdit} onDelete={confirmDelete} t={t} />
               ))}
             </AnimatePresence>
           </div>
         )}
       </div>
 
-      <AnnouncementModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        editingItem={editingItem}
-      />
+      <AnnouncementModal open={modalOpen} onClose={() => setModalOpen(false)} editingItem={editingItem} t={t} />
 
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -400,9 +412,9 @@ export default function AnnouncementIndex({ announcements }) {
             <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-semibold text-ink mb-1">Peringatan</h3>
+            <h3 className="text-base font-semibold text-ink mb-1">{t('announcement.deleteModal.title')}</h3>
             <p className="text-xs text-muted mb-6">
-              Yakin ingin menghapus pengumuman <span className="font-semibold text-ink">"{itemToDelete?.title}"</span>? Data yang dihapus tidak dapat dikembalikan.
+              {t('announcement.deleteModal.message', { title: itemToDelete?.title })}
             </p>
             <div className="flex justify-center gap-3">
               <button
@@ -410,14 +422,14 @@ export default function AnnouncementIndex({ announcements }) {
                 onClick={() => setDeleteModalOpen(false)}
                 className="flex-1 px-4 py-2.5 text-sm font-medium text-muted rounded-xl border border-border hover:bg-surface2 transition-colors"
               >
-                Batal
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 onClick={executeDelete}
                 className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-lg"
               >
-                Ya, Hapus
+                {t('announcement.deleteModal.confirm')}
               </button>
             </div>
           </div>

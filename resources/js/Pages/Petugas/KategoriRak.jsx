@@ -4,8 +4,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ConfirmDialog from '@/Components/ConfirmDialog';
 import { useConfirm } from '@/Hooks/useConfirm';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function KategoriRak({ raks, kategori }) {
+    const { t } = useLanguage();
     const [showForm, setShowForm] = useState(false);
     const [editingRak, setEditingRak] = useState(null);
     const [form, setForm] = useState({ kode_rak: '', lokasi: '', keterangan: '', kapasitas: 50 });
@@ -34,7 +36,7 @@ function KategoriRak({ raks, kategori }) {
     };
 
     const hapus = async (id, kode) => {
-        const ok = await confirm('Hapus Rak?', `Rak "${kode}" akan dihapus. Pastikan tidak ada buku yang masih ditempatkan di sana.`);
+        const ok = await confirm(t('kategorirak.confirmDelete.title'), t('kategorirak.confirmDelete.message', { kode }));
         if (ok) {
             router.delete(`/rak/${id}`, { preserveScroll: true });
         }
@@ -43,18 +45,18 @@ function KategoriRak({ raks, kategori }) {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Kategori & Rak</h2>
-                <p className="text-sm text-muted">Kelola lokasi rak fisik dan lihat daftar kategori buku.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('kategorirak.title')}</h2>
+                <p className="text-sm text-muted">{t('kategorirak.subtitle')}</p>
             </div>
 
             <div>
                 <div className="mb-3 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-ink">Rak Buku</p>
+                    <p className="text-sm font-semibold text-ink">{t('kategorirak.shelves')}</p>
                     <button
                         onClick={() => bukaForm()}
                         className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white"
                     >
-                        <Plus size={13} /> Tambah Rak
+                        <Plus size={13} /> {t('kategorirak.addShelf')}
                     </button>
                 </div>
 
@@ -82,7 +84,7 @@ function KategoriRak({ raks, kategori }) {
                                 </div>
                             </div>
                             <p className="mt-2 text-xs text-muted">
-                                {r.buku_count} buku · kapasitas {r.kapasitas}
+                                {t('kategorirak.booksCount', { count: r.buku_count, kapasitas: r.kapasitas })}
                             </p>
                         </div>
                     ))}
@@ -90,7 +92,7 @@ function KategoriRak({ raks, kategori }) {
             </div>
 
             <div>
-                <p className="mb-3 text-sm font-semibold text-ink">Kategori Buku</p>
+                <p className="mb-3 text-sm font-semibold text-ink">{t('kategorirak.categories')}</p>
                 <div className="flex flex-wrap gap-2">
                     {kategori.map((k) => (
                         <span key={k.id} className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted">
@@ -98,7 +100,7 @@ function KategoriRak({ raks, kategori }) {
                         </span>
                     ))}
                 </div>
-                <p className="mt-2 text-xs text-muted/70">Tambah/edit kategori dilakukan Admin lewat Master Data.</p>
+                <p className="mt-2 text-xs text-muted/70">{t('kategorirak.categoryHint')}</p>
             </div>
 
             {showForm && (
@@ -106,14 +108,14 @@ function KategoriRak({ raks, kategori }) {
                     <div onClick={() => setShowForm(false)} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
                     <div className="relative w-full max-w-sm rounded-2xl border border-border bg-surface p-5">
                         <div className="mb-4 flex items-center justify-between">
-                            <p className="text-sm font-semibold text-ink">{editingRak ? 'Edit Rak' : 'Tambah Rak'}</p>
+                            <p className="text-sm font-semibold text-ink">{editingRak ? t('kategorirak.editShelf') : t('kategorirak.addShelf')}</p>
                             <button onClick={() => setShowForm(false)} className="text-muted hover:text-ink">
                                 <X size={16} />
                             </button>
                         </div>
                         <div className="space-y-3">
                             <div>
-                                <label className="text-xs font-medium uppercase tracking-wider text-muted">Kode Rak</label>
+                                <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('kategorirak.field.code')}</label>
                                 <input
                                     value={form.kode_rak}
                                     onChange={(e) => setForm((f) => ({ ...f, kode_rak: e.target.value }))}
@@ -121,7 +123,7 @@ function KategoriRak({ raks, kategori }) {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium uppercase tracking-wider text-muted">Lokasi</label>
+                                <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('kategorirak.field.location')}</label>
                                 <input
                                     value={form.lokasi}
                                     onChange={(e) => setForm((f) => ({ ...f, lokasi: e.target.value }))}
@@ -129,7 +131,7 @@ function KategoriRak({ raks, kategori }) {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium uppercase tracking-wider text-muted">Kapasitas</label>
+                                <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('kategorirak.field.capacity')}</label>
                                 <input
                                     type="number"
                                     min={1}
@@ -143,7 +145,7 @@ function KategoriRak({ raks, kategori }) {
                                 disabled={saving}
                                 className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                             >
-                                {saving ? 'Menyimpan…' : 'Simpan'}
+                                {saving ? t('kategorirak.saving') : t('kategorirak.save')}
                             </button>
                         </div>
                     </div>

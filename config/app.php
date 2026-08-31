@@ -65,7 +65,14 @@ return [
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
+    // FIX: default fallback diubah dari 'UTC' ke 'Asia/Jakarta'. Z-Lib
+    // aplikasi berbahasa Indonesia dengan basis pengguna Indonesia — kalau
+    // APP_TIMEZONE tidak di-set eksplisit di .env, perhitungan "hari ini"
+    // (dipakai buat expired pengumuman, denda per hari, dst) sebelumnya
+    // mengikuti UTC yang selisih 7 jam dari WIB, bikin tanggal "meleset"
+    // di jam-jam tertentu. TETAP disarankan set eksplisit di .env:
+    // APP_TIMEZONE=Asia/Jakarta
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------

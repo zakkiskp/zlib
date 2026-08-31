@@ -2,6 +2,8 @@ import { useRef } from 'react';
 import { Link } from '@inertiajs/react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { BookOpen, Users, ShieldCheck, QrCode, BarChart3, Bell, Sparkles } from 'lucide-react';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import ThemeSwitcher from '@/Components/Navigation/ThemeSwitcher';
 
 /**
  * Layout mandiri untuk halaman Login & Register — TIDAK bergantung pada
@@ -99,12 +101,20 @@ export default function AuthSplitLayout({ children, title, description }) {
       {/* Sisi Kiri — Form */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12 overflow-y-auto">
         <div className="w-full max-w-sm mx-auto">
-          <Link href="/" className="inline-flex items-center gap-2 mb-10">
-            <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-white font-bold text-sm shadow-glow-accent">
-              ZL
+          <div className="flex items-center justify-between mb-10">
+            <Link href="/" className="inline-flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-white font-bold text-sm shadow-glow-accent">
+                ZL
+              </div>
+              <span className="font-bold text-lg text-ink">Z-Lib</span>
+            </Link>
+            {/* TASK #3: Theme Switcher + Language Switcher berdampingan di
+                pojok kanan atas — bisa ganti tema & bahasa SEBELUM login. */}
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+              <LanguageSwitcher />
             </div>
-            <span className="font-bold text-lg text-ink">Z-Lib</span>
-          </Link>
+          </div>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <h1 className="text-2xl font-bold text-ink">{title}</h1>

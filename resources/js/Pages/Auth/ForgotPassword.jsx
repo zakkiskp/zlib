@@ -1,9 +1,11 @@
 import { Head, useForm } from '@inertiajs/react';
 import AuthSplitLayout from '@/Layouts/AuthSplitLayout';
 import FloatingInput from '@/Components/FloatingInput';
+import { useLanguage } from '@/Contexts/LanguageContext';
 import { Mail, Loader2 } from 'lucide-react';
 
 export default function ForgotPassword({ status }) {
+  const { t } = useLanguage();
   const form = useForm({ email: '' });
 
   function submit(e) {
@@ -12,11 +14,8 @@ export default function ForgotPassword({ status }) {
   }
 
   return (
-    <AuthSplitLayout
-      title="Lupa Password"
-      description="Masukkan email Anda, kami kirim tautan untuk reset password."
-    >
-      <Head title="Lupa Password" />
+    <AuthSplitLayout title={t('authpages.forgot.title')} description={t('authpages.forgot.subtitle')}>
+      <Head title={t('authpages.forgot.title')} />
 
       {status && (
         <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-600 dark:text-emerald-400">
@@ -28,7 +27,7 @@ export default function ForgotPassword({ status }) {
         <FloatingInput
           id="email"
           type="email"
-          label="Email (@gmail.com)"
+          label={t('auth.login.email')}
           icon={Mail}
           autoComplete="username"
           value={form.data.email}
@@ -42,7 +41,7 @@ export default function ForgotPassword({ status }) {
           className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-semibold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.25)] shadow-glow-accent hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-60"
         >
           {form.processing && <Loader2 className="w-4 h-4 animate-spin" />}
-          Kirim Tautan Reset Password
+          {t('authpages.forgot.submit')}
         </button>
       </form>
     </AuthSplitLayout>

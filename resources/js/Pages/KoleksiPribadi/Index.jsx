@@ -3,8 +3,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BookCover from '@/Components/BookCover';
 import StarRating from '@/Components/Katalog/StarRating';
 import { Heart } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function KoleksiPribadi({ koleksi }) {
+    const { t } = useLanguage();
     const hapus = (bukuId) => {
         router.post(`/koleksi-pribadi/${bukuId}/toggle`, {}, { preserveScroll: true });
     };
@@ -12,13 +14,13 @@ function KoleksiPribadi({ koleksi }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Koleksi Pribadi</h2>
-                <p className="text-sm text-muted">Buku-buku yang kamu simpan sebagai favorit.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('koleksi.title')}</h2>
+                <p className="text-sm text-muted">{t('koleksi.subtitle')}</p>
             </div>
 
             {koleksi.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-12 text-center text-sm text-muted">
-                    Belum ada buku favorit. Klik ikon hati di Katalog untuk menyimpan buku ke sini.
+                    {t('koleksi.empty')}
                 </div>
             ) : (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
@@ -40,7 +42,7 @@ function KoleksiPribadi({ koleksi }) {
                                 onClick={() => hapus(k.buku_id)}
                                 className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-red-500 hover:underline"
                             >
-                                <Heart size={11} className="fill-red-500" /> Hapus dari koleksi
+                                <Heart size={11} className="fill-red-500" /> {t('koleksi.remove')}
                             </button>
                         </div>
                     ))}

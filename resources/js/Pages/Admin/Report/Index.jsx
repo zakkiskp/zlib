@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { useLanguage } from '@/Contexts/LanguageContext';
 import { dateInputClass } from '@/Utils/ui';
 import {
   FileSpreadsheet,
@@ -15,23 +16,11 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-/**
- * CATATAN: Halaman ini memakai `trx.anggota` (bukan `trx.user`) mengikuti
- * penyesuaian relasi yang sudah Anda lakukan di model Peminjaman.php &
- * ReportController.php. Kalau Anda masih punya customization lain di file
- * asli Anda, cek ulang sebelum menimpa — file ini hanya menambal bug
- * styling input tanggal, bagian lain direkonstruksi dari versi awal.
- */
-
 function StatCard({ icon: Icon, label, value, accent = false }) {
   return (
     <div className="rounded-2xl border border-border/70 bg-surface/70 backdrop-blur-md p-5">
       <div className="flex items-center gap-3">
-        <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-            accent ? 'bg-accent/10 text-accent' : 'bg-surface2 text-muted'
-          }`}
-        >
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent ? 'bg-accent/10 text-accent' : 'bg-surface2 text-muted'}`}>
           <Icon className="w-5 h-5" />
         </div>
         <div>
@@ -50,6 +39,7 @@ const STATUS_META = {
 };
 
 export default function ReportIndex({ transactions, filters, summary }) {
+  const { t } = useLanguage();
   const [from, setFrom] = useState(filters.from);
   const [to, setTo] = useState(filters.to);
 
@@ -65,7 +55,7 @@ export default function ReportIndex({ transactions, filters, summary }) {
 
   return (
     <AuthenticatedLayout>
-      <Head title="Laporan & BI" />
+      <Head title={t('report.title')} />
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex items-center gap-3 mb-6">
@@ -73,10 +63,8 @@ export default function ReportIndex({ transactions, filters, summary }) {
             <FileSpreadsheet className="w-5 h-5 text-accent" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-ink">Laporan & Business Intelligence</h1>
-            <p className="text-sm text-muted">
-              Filter rentang tanggal, lalu export laporan resmi ber-kop Z-Lib.
-            </p>
+            <h1 className="text-xl font-bold text-ink">{t('report.title')}</h1>
+            <p className="text-sm text-muted">{t('report.subtitle')}</p>
           </div>
         </div>
 
@@ -91,7 +79,7 @@ export default function ReportIndex({ transactions, filters, summary }) {
               onClick={applyFilter}
               className="px-3.5 py-2 text-sm font-medium rounded-lg bg-ink text-base hover:opacity-90 transition-opacity"
             >
-              Terapkan
+              {t('report.apply')}
             </button>
           </div>
 
@@ -101,23 +89,23 @@ export default function ReportIndex({ transactions, filters, summary }) {
               className="inline-flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-ink hover:bg-surface2 transition-colors"
             >
               <FileText className="w-4 h-4" />
-              Export PDF
+              {t('report.exportPdf')}
             </a>
             <a
               href={exportUrl('excel')}
               className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-white shadow-glow-accent hover:brightness-110 transition-all"
             >
               <FileDown className="w-4 h-4" />
-              Export Excel
+              {t('report.exportExcel')}
             </a>
           </div>
         </div>
 
         {/* Bento Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-          <StatCard icon={ClipboardList} label="Total Transaksi" value={summary.total_transaksi} accent />
-          <StatCard icon={Wallet} label="Total Denda Periode Ini" value={`Rp ${Number(summary.total_denda).toLocaleString('id-ID')}`} />
-          <StatCard icon={Clock3} label="Belum Dikembalikan" value={summary.belum_kembali} />
+          <StatCard icon={ClipboardList} label={t('report.stat.total')} value={summary.total_transaksi} accent />
+          <StatCard icon={Wallet} label={t('report.stat.totalFine')} value={`Rp ${Number(summary.total_denda).toLocaleString('id-ID')}`} />
+          <StatCard icon={Clock3} label={t('report.stat.notReturned')} value={summary.belum_kembali} />
         </div>
 
         {/* Table */}
@@ -126,20 +114,20 @@ export default function ReportIndex({ transactions, filters, summary }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/70 text-left text-xs text-muted">
-                  <th className="px-5 py-3 font-medium">Anggota</th>
-                  <th className="px-5 py-3 font-medium">Buku</th>
-                  <th className="px-5 py-3 font-medium">Tgl Pinjam</th>
-                  <th className="px-5 py-3 font-medium">Jatuh Tempo</th>
-                  <th className="px-5 py-3 font-medium">Tgl Kembali</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium text-right">Denda</th>
+                  <th className="px-5 py-3 font-medium">{t('report.table.member')}</th>
+                  <th className="px-5 py-3 font-medium">{t('report.table.book')}</th>
+                  <th className="px-5 py-3 font-medium">{t('report.table.borrowDate')}</th>
+                  <th className="px-5 py-3 font-medium">{t('report.table.dueDate')}</th>
+                  <th className="px-5 py-3 font-medium">{t('report.table.returnDate')}</th>
+                  <th className="px-5 py-3 font-medium">{t('report.table.status')}</th>
+                  <th className="px-5 py-3 font-medium text-right">{t('report.table.fine')}</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.data.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-5 py-10 text-center text-muted text-sm">
-                      Tidak ada transaksi pada periode ini.
+                      {t('report.empty')}
                     </td>
                   </tr>
                 )}
@@ -172,9 +160,7 @@ export default function ReportIndex({ transactions, filters, summary }) {
 
           {transactions.data.length > 0 && (
             <div className="flex items-center justify-between px-5 py-3.5 border-t border-border/70 text-xs text-muted">
-              <span>
-                Menampilkan {transactions.from}–{transactions.to} dari {transactions.total} transaksi
-              </span>
+              <span>{t('report.pagination', { from: transactions.from, to: transactions.to, total: transactions.total })}</span>
               <div className="flex items-center gap-1">
                 <button
                   disabled={!transactions.prev_page_url}

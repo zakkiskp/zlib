@@ -3,8 +3,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BookCover from '@/Components/BookCover';
 import Pagination from '@/Components/Katalog/Pagination';
 import { CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function PengelolaanDenda({ denda, filters, ringkasan }) {
+    const { t } = useLanguage();
     const filter = (status) => {
         router.get(
             '/pengelolaan-denda',
@@ -20,8 +22,8 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Pengelolaan Denda</h2>
-                <p className="text-sm text-muted">Pantau dan tandai pembayaran denda keterlambatan.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('pengelolaandenda.title')}</h2>
+                <p className="text-sm text-muted">{t('pengelolaandenda.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4 sm:max-w-md">
@@ -29,11 +31,11 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
                     <p className="text-2xl font-semibold text-ink">
                         Rp{new Intl.NumberFormat('id-ID').format(ringkasan.total_belum_lunas)}
                     </p>
-                    <p className="mt-1 text-sm text-muted">Total belum lunas</p>
+                    <p className="mt-1 text-sm text-muted">{t('pengelolaandenda.totalUnpaid')}</p>
                 </div>
                 <div className="rounded-2xl border border-border bg-surface p-4">
                     <p className="text-2xl font-semibold text-ink">{ringkasan.jumlah_belum_lunas}</p>
-                    <p className="mt-1 text-sm text-muted">Transaksi belum lunas</p>
+                    <p className="mt-1 text-sm text-muted">{t('pengelolaandenda.countUnpaid')}</p>
                 </div>
             </div>
 
@@ -44,7 +46,7 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
                         !filters.status ? 'bg-accent/10 text-accent' : 'text-muted hover:text-ink'
                     }`}
                 >
-                    Semua
+                    {t('pengelolaandenda.filter.all')}
                 </button>
                 <button
                     onClick={() => filter('belum_lunas')}
@@ -52,7 +54,7 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
                         filters.status === 'belum_lunas' ? 'bg-accent/10 text-accent' : 'text-muted hover:text-ink'
                     }`}
                 >
-                    Belum Lunas
+                    {t('pengelolaandenda.filter.unpaid')}
                 </button>
                 <button
                     onClick={() => filter('lunas')}
@@ -60,13 +62,13 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
                         filters.status === 'lunas' ? 'bg-accent/10 text-accent' : 'text-muted hover:text-ink'
                     }`}
                 >
-                    Lunas
+                    {t('pengelolaandenda.filter.paid')}
                 </button>
             </div>
 
             {denda.data.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-12 text-center text-sm text-muted">
-                    Tidak ada data denda.
+                    {t('pengelolaandenda.empty')}
                 </div>
             ) : (
                 <div className="overflow-hidden rounded-2xl border border-border bg-surface">
@@ -85,11 +87,11 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
                                     onClick={() => tandaiLunas(d.id)}
                                     className="flex shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white"
                                 >
-                                    <CheckCircle2 size={13} /> Tandai Lunas
+                                    <CheckCircle2 size={13} /> {t('pengelolaandenda.markPaid')}
                                 </button>
                             ) : (
                                 <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-500">
-                                    Lunas
+                                    {t('pengelolaandenda.paid')}
                                 </span>
                             )}
                         </div>

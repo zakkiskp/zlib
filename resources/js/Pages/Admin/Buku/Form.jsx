@@ -3,9 +3,22 @@ import { useForm, router, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BookCover from '@/Components/BookCover';
 import { Save, Upload, FileText, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import SearchableSelect from '@/Components/SearchableSelect';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function BukuForm({ buku, kategoriList, rakList }) {
+    const { t } = useLanguage();
     const isEdit = Boolean(buku);
+
+    const rakOptions = [
+        { value: '', label: t('adminbuku.field.shelf.notset') },
+        ...rakList.map((r) => ({ value: r.id, label: `${r.kode_rak} — ${r.lokasi}` })),
+    ];
+    const kondisiOptions = [
+        { value: 'baik', label: t('preservasi.kondisi.baik') },
+        { value: 'rusak', label: t('preservasi.kondisi.rusak') },
+        { value: 'hilang', label: t('preservasi.kondisi.hilang') },
+    ];
 
     const form = useForm({
         judul_buku: buku?.judul_buku || '',
@@ -64,10 +77,10 @@ function BukuForm({ buku, kategoriList, rakList }) {
     return (
         <div className="space-y-5">
             <Link href="/admin/buku" prefetch className="flex w-fit items-center gap-1.5 text-sm text-muted hover:text-ink">
-                <ArrowLeft size={15} /> Kembali ke Master Data Buku
+                <ArrowLeft size={15} /> {t('adminbuku.form.backToList')}
             </Link>
 
-            <h2 className="text-xl font-semibold text-ink">{isEdit ? 'Edit Buku' : 'Tambah Buku Baru'}</h2>
+            <h2 className="text-xl font-semibold text-ink">{isEdit ? t('adminbuku.form.editTitle') : t('adminbuku.form.createTitle')}</h2>
 
             <div className={`grid grid-cols-1 gap-5 ${isEdit ? 'lg:grid-cols-[280px_1fr]' : ''}`}>
                 {isEdit && (
@@ -89,7 +102,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                                     dragOver ? 'border-accent bg-accent/5 text-accent' : 'border-border text-muted hover:border-accent/40 hover:text-accent'
                                 }`}
                             >
-                                <Upload size={13} /> {uploadingCover ? 'Mengunggah…' : 'Ganti Cover (drag & drop)'}
+                                <Upload size={13} /> {uploadingCover ? t('adminbuku.form.uploading') : t('adminbuku.form.changeCover')}
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -101,19 +114,19 @@ function BukuForm({ buku, kategoriList, rakList }) {
 
                         <div className="rounded-2xl border border-border bg-surface p-4">
                             <p className="flex items-center gap-2 text-xs font-medium text-muted">
-                                <FileText size={13} /> File PDF Baca Online
+                                <FileText size={13} /> {t('adminbuku.form.pdfFile')}
                             </p>
                             <p className="mt-1.5 flex items-center gap-1.5 text-xs">
                                 {buku.file_pdf_url ? (
                                     <span className="flex items-center gap-1 text-emerald-500">
-                                        <CheckCircle2 size={12} /> File sudah diunggah
+                                        <CheckCircle2 size={12} /> {t('adminbuku.form.fileUploaded')}
                                     </span>
                                 ) : (
-                                    <span className="text-muted">Belum ada file</span>
+                                    <span className="text-muted">{t('adminbuku.form.noFile')}</span>
                                 )}
                             </p>
                             <label className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border py-2.5 text-xs font-medium text-muted hover:border-accent/40 hover:text-accent">
-                                <Upload size={13} /> {uploadingPdf ? 'Mengunggah…' : 'Unggah PDF'}
+                                <Upload size={13} /> {uploadingPdf ? t('adminbuku.form.uploading') : t('adminbuku.form.uploadPdf')}
                                 <input
                                     type="file"
                                     accept="application/pdf"
@@ -128,13 +141,13 @@ function BukuForm({ buku, kategoriList, rakList }) {
                 <form onSubmit={submit} className="space-y-4 rounded-2xl border border-border bg-surface p-5">
                     {!isEdit && (
                         <p className="rounded-lg bg-accent/10 px-3 py-2 text-xs text-accent">
-                            Simpan data buku dulu, upload cover &amp; PDF-nya bisa dilakukan setelah ini di halaman edit.
+                            {t('adminbuku.form.createHint')}
                         </p>
                     )}
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Judul Buku</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.title')}</label>
                             <input
                                 value={form.data.judul_buku}
                                 onChange={(e) => form.setData('judul_buku', e.target.value)}
@@ -143,7 +156,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             {form.errors.judul_buku && <p className="mt-1 text-xs text-red-500">{form.errors.judul_buku}</p>}
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Penulis</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.author')}</label>
                             <input
                                 value={form.data.penulis}
                                 onChange={(e) => form.setData('penulis', e.target.value)}
@@ -152,7 +165,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             {form.errors.penulis && <p className="mt-1 text-xs text-red-500">{form.errors.penulis}</p>}
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Penerbit</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.publisher')}</label>
                             <input
                                 value={form.data.penerbit}
                                 onChange={(e) => form.setData('penerbit', e.target.value)}
@@ -160,7 +173,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Tahun Terbit</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.year')}</label>
                             <input
                                 type="number"
                                 value={form.data.tahun_terbit}
@@ -169,7 +182,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             />
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">ISBN</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.isbn')}</label>
                             <input
                                 value={form.data.isbn}
                                 onChange={(e) => form.setData('isbn', e.target.value)}
@@ -178,22 +191,19 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             {form.errors.isbn && <p className="mt-1 text-xs text-red-500">{form.errors.isbn}</p>}
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Rak</label>
-                            <select
-                                value={form.data.rak_id}
-                                onChange={(e) => form.setData('rak_id', e.target.value)}
-                                className="mt-1.5 w-full rounded-lg border border-border bg-base px-3 py-2 text-sm text-ink focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                            >
-                                <option value="">Belum ditentukan</option>
-                                {rakList.map((r) => (
-                                    <option key={r.id} value={r.id}>
-                                        {r.kode_rak} — {r.lokasi}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.shelf')}</label>
+                            <div className="mt-1.5">
+                                <SearchableSelect
+                                    value={form.data.rak_id}
+                                    onChange={(val) => form.setData('rak_id', val)}
+                                    options={rakOptions}
+                                    searchPlaceholder={t('common.search')}
+                                    emptyText={t('common.noResults')}
+                                />
+                            </div>
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Total Stok</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.totalStock')}</label>
                             <input
                                 type="number"
                                 min={0}
@@ -204,7 +214,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             {form.errors.total_stok && <p className="mt-1 text-xs text-red-500">{form.errors.total_stok}</p>}
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Stok Tersedia</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.availableStock')}</label>
                             <input
                                 type="number"
                                 min={0}
@@ -215,19 +225,19 @@ function BukuForm({ buku, kategoriList, rakList }) {
                             {form.errors.stok_tersedia && <p className="mt-1 text-xs text-red-500">{form.errors.stok_tersedia}</p>}
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Kondisi</label>
-                            <select
-                                value={form.data.kondisi}
-                                onChange={(e) => form.setData('kondisi', e.target.value)}
-                                className="mt-1.5 w-full rounded-lg border border-border bg-base px-3 py-2 text-sm text-ink focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
-                            >
-                                <option value="baik">Baik</option>
-                                <option value="rusak">Rusak</option>
-                                <option value="hilang">Hilang</option>
-                            </select>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.condition')}</label>
+                            <div className="mt-1.5">
+                                <SearchableSelect
+                                    value={form.data.kondisi}
+                                    onChange={(val) => form.setData('kondisi', val)}
+                                    options={kondisiOptions}
+                                    searchPlaceholder={t('common.search')}
+                                    emptyText={t('common.noResults')}
+                                />
+                            </div>
                         </div>
                         <div>
-                            <label className="text-xs font-medium uppercase tracking-wider text-muted">Bahasa</label>
+                            <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.language')}</label>
                             <input
                                 value={form.data.bahasa}
                                 onChange={(e) => form.setData('bahasa', e.target.value)}
@@ -237,7 +247,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                     </div>
 
                     <div>
-                        <label className="text-xs font-medium uppercase tracking-wider text-muted">Sinopsis</label>
+                        <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.synopsis')}</label>
                         <textarea
                             value={form.data.deskripsi}
                             onChange={(e) => form.setData('deskripsi', e.target.value)}
@@ -247,7 +257,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                     </div>
 
                     <div>
-                        <label className="text-xs font-medium uppercase tracking-wider text-muted">Kategori</label>
+                        <label className="text-xs font-medium uppercase tracking-wider text-muted">{t('adminbuku.field.categories')}</label>
                         <div className="mt-2 flex flex-wrap gap-2">
                             {kategoriList.map((k) => (
                                 <button
@@ -272,7 +282,7 @@ function BukuForm({ buku, kategoriList, rakList }) {
                         disabled={form.processing}
                         className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-transform hover:-translate-y-0.5 disabled:opacity-60"
                     >
-                        <Save size={15} /> {form.processing ? 'Menyimpan…' : 'Simpan'}
+                        <Save size={15} /> {form.processing ? t('adminbuku.saving') : t('adminbuku.save')}
                     </button>
                 </form>
             </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CircleCheck, Clock3, Banknote, Megaphone, RefreshCw, Info } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const ICON_BY_TYPE = {
     jatuh_tempo: Clock3,
@@ -14,18 +15,20 @@ const ICON_BY_TYPE = {
 
 export default function NotificationBell() {
     const { props } = usePage();
+    const { t } = useLanguage();
     const userId = props.auth?.user?.id;
 
-    // State lokal (bukan langsung baca props) supaya bisa di-update live
-    // dari event Reverb, bukan cuma pas ada page visit baru dari server.
-    const [notifications, setNotifications] = useState(props.notifikasi ?? []);
+    // Pastikan props.notifikasi aman dan berupa array sebelum di-assign ke state
+    const initialNotifikasi = Array.isArray(props.notifikasi) ? props.notifikasi : [];
+
+    const [notifications, setNotifications] = useState(initialNotifikasi);
     const [unreadCount, setUnreadCount] = useState(props.notifikasiBelumDibaca ?? 0);
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
 
-    // Sinkron ulang tiap kali props dari server berubah (misal habis pindah halaman biasa)
+    // Sinkron ulang tiap kali props dari server berubah dengan pengaman array
     useEffect(() => {
-        setNotifications(props.notifikasi ?? []);
+        setNotifications(Array.isArray(props.notifikasi) ? props.notifikasi : []);
         setUnreadCount(props.notifikasiBelumDibaca ?? 0);
     }, [props.notifikasi, props.notifikasiBelumDibaca]);
 
@@ -35,7 +38,7 @@ export default function NotificationBell() {
 
         const channel = window.Echo.private(`notifikasi.${userId}`);
         channel.listen('.notifikasi.baru', (payload) => {
-            setNotifications((prev) => [payload, ...prev].slice(0, 10));
+            setNotifications((prev) => [payload, ...(Array.isArray(prev) ? prev : [])].slice(0, 10));
             setUnreadCount((prev) => prev + 1);
         });
 
@@ -53,16 +56,19 @@ export default function NotificationBell() {
     }, []);
 
     const markAllRead = () => {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+        setNotifications((prev) => (Array.isArray(prev) ? prev.map((n) => ({ ...n, is_read: true })) : []));
         setUnreadCount(0);
         router.post('/notifikasi/tandai-semua', {}, { preserveScroll: true, preserveState: true });
     };
+
+    // Pastikan variabel aman untuk di-mapping
+    const safeNotifications = Array.isArray(notifications) ? notifications : [];
 
     return (
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setOpen((v) => !v)}
-                aria-label="Notifikasi"
+                aria-label={t('notification.title')}
                 className="relative flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-ink"
             >
                 <Bell size={18} />
@@ -81,22 +87,22 @@ export default function NotificationBell() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.98 }}
                         transition={{ duration: 0.14 }}
-                        className="absolute right-0 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-surface/95 shadow-soft backdrop-blur-md"
+                        className="absolute right-0 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-surface/95 shadow-soft backdrop-blur-md z-50"
                     >
                         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                            <p className="text-sm font-semibold text-ink">Notifikasi</p>
+                            <p className="text-sm font-semibold text-ink">{t('notification.title')}</p>
                             {unreadCount > 0 && (
                                 <button onClick={markAllRead} className="text-xs font-medium text-accent hover:underline">
-                                    Tandai semua dibaca
+                                    {t('notification.markAllRead')}
                                 </button>
                             )}
                         </div>
 
                         <div className="max-h-80 overflow-y-auto">
-                            {notifications.length === 0 ? (
-                                <p className="px-4 py-8 text-center text-sm text-muted">Belum ada notifikasi.</p>
+                            {safeNotifications.length === 0 ? (
+                                <p className="px-4 py-8 text-center text-sm text-muted">{t('notification.empty')}</p>
                             ) : (
-                                notifications.map((n) => {
+                                safeNotifications.map((n) => {
                                     const NIcon = ICON_BY_TYPE[n.tipe] ?? Info;
                                     return (
                                         <div
@@ -127,7 +133,7 @@ export default function NotificationBell() {
                             prefetch
                             className="block border-t border-border px-4 py-2.5 text-center text-xs font-medium text-accent hover:bg-surface2"
                         >
-                            Lihat semua notifikasi
+                            {t('notification.viewAll')}
                         </Link>
                     </motion.div>
                 )}

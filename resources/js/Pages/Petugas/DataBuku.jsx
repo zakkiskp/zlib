@@ -4,8 +4,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BookCover from '@/Components/BookCover';
 import Pagination from '@/Components/Katalog/Pagination';
 import { Search, Save } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function DataBuku({ buku, filters }) {
+    const { t } = useLanguage();
     const [q, setQ] = useState(filters.q || '');
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState({ stok_tersedia: 0, total_stok: 0 });
@@ -44,8 +46,8 @@ function DataBuku({ buku, filters }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Data Buku</h2>
-                <p className="text-sm text-muted">Kelola stok fisik buku di perpustakaan.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('databuku.title')}</h2>
+                <p className="text-sm text-muted">{t('databuku.subtitle')}</p>
             </div>
 
             <div className="relative max-w-sm">
@@ -53,7 +55,7 @@ function DataBuku({ buku, filters }) {
                 <input
                     value={q}
                     onChange={onSearch}
-                    placeholder="Cari judul buku…"
+                    placeholder={t('databuku.search.placeholder')}
                     className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
             </div>
@@ -89,7 +91,7 @@ function DataBuku({ buku, filters }) {
                                     disabled={saving}
                                     className="flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
                                 >
-                                    <Save size={12} /> Simpan
+                                    <Save size={12} /> {t('databuku.save')}
                                 </button>
                             </div>
                         ) : (
@@ -97,7 +99,7 @@ function DataBuku({ buku, filters }) {
                                 onClick={() => mulaiEdit(b)}
                                 className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-ink hover:bg-surface2"
                             >
-                                {b.stok_tersedia}/{b.total_stok} tersedia
+                                {t('databuku.availableOf', { tersedia: b.stok_tersedia, total: b.total_stok })}
                             </button>
                         )}
                     </div>

@@ -6,8 +6,10 @@ import BookGridCard from '@/Components/Katalog/BookGridCard';
 import BookTableRow from '@/Components/Katalog/BookTableRow';
 import BookDetailModal from '@/Components/Katalog/BookDetailModal';
 import Pagination from '@/Components/Katalog/Pagination';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function KatalogIndex({ buku, kategoriList, filters }) {
+    const { t } = useLanguage();
     const [view, setView] = useState('grid');
     const [q, setQ] = useState(filters.q || '');
     const [selected, setSelected] = useState(null);
@@ -42,8 +44,8 @@ function KatalogIndex({ buku, kategoriList, filters }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Katalog Buku</h2>
-                <p className="text-sm text-muted">{buku.total} buku tersedia di perpustakaan</p>
+                <h2 className="text-xl font-semibold text-ink">{t('katalog.title')}</h2>
+                <p className="text-sm text-muted">{t('katalog.subtitle', { total: buku.total })}</p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -53,7 +55,7 @@ function KatalogIndex({ buku, kategoriList, filters }) {
                         value={q}
                         onChange={onSearchChange}
                         type="text"
-                        placeholder="Cari judul atau penulis…"
+                        placeholder={t('katalog.search.placeholder')}
                         className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
                     />
                 </div>
@@ -86,7 +88,7 @@ function KatalogIndex({ buku, kategoriList, filters }) {
                         !filters.kategori ? 'border-accent/40 bg-accent/10 text-accent' : 'border-border text-muted hover:text-ink'
                     }`}
                 >
-                    Semua
+                    {t('katalog.filter.all')}
                 </button>
                 {kategoriList.map((k) => (
                     <button
@@ -106,7 +108,7 @@ function KatalogIndex({ buku, kategoriList, filters }) {
 
             {buku.data.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-12 text-center text-sm text-muted">
-                    Tidak ada buku yang cocok dengan pencarianmu.
+                    {t('katalog.empty')}
                 </div>
             ) : view === 'grid' ? (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
@@ -119,10 +121,10 @@ function KatalogIndex({ buku, kategoriList, filters }) {
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
-                                <th className="pb-2 pl-1">Buku</th>
-                                <th className="pb-2">Kategori</th>
-                                <th className="pb-2">Rating</th>
-                                <th className="pb-2 pr-1 text-right">Stok</th>
+                                <th className="pb-2 pl-1">{t('katalog.table.book')}</th>
+                                <th className="pb-2">{t('katalog.table.category')}</th>
+                                <th className="pb-2">{t('katalog.table.rating')}</th>
+                                <th className="pb-2 pr-1 text-right">{t('katalog.table.stock')}</th>
                             </tr>
                         </thead>
                         <tbody>

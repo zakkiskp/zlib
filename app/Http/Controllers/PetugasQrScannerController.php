@@ -10,16 +10,17 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * ⚠️ CATATAN PENTING — SESUAIKAN FORMAT PAYLOAD QR:
- * Saya tidak punya visibilitas ke generator QR Code E-KTA Anda dari
- * Langkah 6B, jadi controller ini mengasumsikan payload QR memakai salah
- * satu format berikut:
+ * ⚠️ CATATAN FORMAT PAYLOAD QR (masih asumsi, silakan sesuaikan kalau beda):
+ * Controller ini mengasumsikan payload QR memakai salah satu format berikut:
  *   - E-KTA Anggota : "ZLIB-MEMBER:{id_user}"
  *   - Buku           : "ZLIB-BOOK:{isbn}"   atau ISBN mentah tanpa prefix
  * Kalau generator QR E-KTA Anda menghasilkan format lain (mis. UUID murni
  * atau JSON), sesuaikan method resolveCode() di bawah agar cocok.
- * Kolom `member_code` di resolveMember() juga asumsi — ganti dengan nama
- * kolom identifier E-KTA asli Anda kalau berbeda dari `id`.
+ *
+ * FIX BUG (Column not found: member_code): kolom identifier anggota yang
+ * BENAR adalah `no_anggota` (lihat migration
+ * 2026_08_07_000001_add_custom_columns_to_users_table.php), bukan
+ * `member_code` yang memang tidak pernah ada di tabel `users`.
  */
 class PetugasQrScannerController extends Controller
 {
@@ -63,7 +64,7 @@ class PetugasQrScannerController extends Controller
     private function resolveMember(string $identifier): ?array
     {
         $user = User::where('id', $identifier)
-            ->orWhere('member_code', $identifier) // GANTI kalau kolom E-KTA Anda beda nama
+            ->orWhere('no_anggota', $identifier)
             ->first();
 
         if (! $user) {
@@ -75,6 +76,7 @@ class PetugasQrScannerController extends Controller
             'type' => 'member',
             'data' => [
                 'id' => $user->id,
+                'no_anggota' => $user->no_anggota,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,

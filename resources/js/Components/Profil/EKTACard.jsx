@@ -1,7 +1,9 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { Library } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function EKTACard({ user }) {
+    const { t } = useLanguage();
     return (
         <div
             id="ekta-card"
@@ -13,7 +15,7 @@ export default function EKTACard({ user }) {
                 </div>
                 <span className="text-sm font-semibold text-ink">Zlib Digital Library</span>
             </div>
-            <p className="mt-0.5 text-[10.5px] uppercase tracking-wider text-muted">Kartu Anggota Digital</p>
+            <p className="mt-0.5 text-[10.5px] uppercase tracking-wider text-muted">{t('ekta.subtitle')}</p>
 
             <div className="mt-4 flex items-center gap-4">
                 <img
@@ -30,7 +32,7 @@ export default function EKTACard({ user }) {
 
             <div className="mt-4 flex items-center justify-between rounded-xl bg-base/60 p-3">
                 <div className="text-[10.5px] text-muted">
-                    <p>Berlaku selama status aktif</p>
+                    <p>{t('ekta.validity')}</p>
                     <p className="mt-0.5 font-mono">@{user.username}</p>
                 </div>
                 <div className="rounded-lg bg-white p-1.5">

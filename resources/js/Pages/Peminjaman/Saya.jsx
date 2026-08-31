@@ -4,14 +4,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import BookCover from '@/Components/BookCover';
 import Pagination from '@/Components/Katalog/Pagination';
 import { Clock, RefreshCw } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
-const STATUS_META = {
-    menunggu_persetujuan: { label: 'Menunggu Persetujuan', color: 'bg-amber-500/10 text-amber-500' },
-    disetujui: { label: 'Disetujui', color: 'bg-accent/10 text-accent' },
-    dipinjam: { label: 'Sedang Dipinjam', color: 'bg-accent/10 text-accent' },
-    terlambat: { label: 'Terlambat', color: 'bg-red-500/10 text-red-500' },
-    dikembalikan: { label: 'Dikembalikan', color: 'bg-emerald-500/10 text-emerald-500' },
-    ditolak: { label: 'Ditolak', color: 'bg-red-500/10 text-red-500' },
+const STATUS_COLOR = {
+    menunggu_persetujuan: 'bg-amber-500/10 text-amber-500',
+    disetujui: 'bg-accent/10 text-accent',
+    dipinjam: 'bg-accent/10 text-accent',
+    terlambat: 'bg-red-500/10 text-red-500',
+    dikembalikan: 'bg-emerald-500/10 text-emerald-500',
+    ditolak: 'bg-red-500/10 text-red-500',
 };
 
 function sisaHari(tanggal) {
@@ -22,6 +23,7 @@ function sisaHari(tanggal) {
 }
 
 function Saya({ aktif, riwayat, pengaturan }) {
+    const { t } = useLanguage();
     const [tab, setTab] = useState('aktif');
     const [loadingId, setLoadingId] = useState(null);
 
@@ -37,8 +39,8 @@ function Saya({ aktif, riwayat, pengaturan }) {
     return (
         <div className="space-y-5">
             <div>
-                <h2 className="text-xl font-semibold text-ink">Peminjaman Saya</h2>
-                <p className="text-sm text-muted">Pantau status peminjaman aktif dan riwayat transaksimu.</p>
+                <h2 className="text-xl font-semibold text-ink">{t('peminjaman.title')}</h2>
+                <p className="text-sm text-muted">{t('peminjaman.subtitle')}</p>
             </div>
 
             <div className="flex w-fit gap-1 rounded-lg border border-border bg-surface p-1">
@@ -48,7 +50,7 @@ function Saya({ aktif, riwayat, pengaturan }) {
                         tab === 'aktif' ? 'bg-accent/10 text-accent' : 'text-muted hover:text-ink'
                     }`}
                 >
-                    Aktif ({aktif.length})
+                    {t('peminjaman.tab.active', { count: aktif.length })}
                 </button>
                 <button
                     onClick={() => setTab('riwayat')}
@@ -56,18 +58,18 @@ function Saya({ aktif, riwayat, pengaturan }) {
                         tab === 'riwayat' ? 'bg-accent/10 text-accent' : 'text-muted hover:text-ink'
                     }`}
                 >
-                    Riwayat
+                    {t('peminjaman.tab.history')}
                 </button>
             </div>
 
             {tab === 'aktif' ? (
                 aktif.length === 0 ? (
-                    <EmptyState text="Belum ada peminjaman aktif. Yuk jelajahi katalog!" />
+                    <EmptyState text={t('peminjaman.empty.active')} />
                 ) : (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {aktif.map((p) => {
                             const sisa = sisaHari(p.tanggal_jatuh_tempo);
-                            const status = STATUS_META[p.status] ?? STATUS_META.dipinjam;
+                            const statusColor = STATUS_COLOR[p.status] ?? STATUS_COLOR.dipinjam;
                             const bisaPerpanjang =
                                 p.status === 'dipinjam' &&
                                 p.status_perpanjangan !== 'menunggu' &&
@@ -84,9 +86,9 @@ function Saya({ aktif, riwayat, pengaturan }) {
                                         <p className="truncate text-sm font-medium text-ink">{p.buku?.judul_buku}</p>
                                         <p className="truncate text-xs text-muted">{p.buku?.penulis}</p>
                                         <span
-                                            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[10.5px] font-medium ${status.color}`}
+                                            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-[10.5px] font-medium ${statusColor}`}
                                         >
-                                            {status.label}
+                                            {t(`peminjaman.status.${p.status}`)}
                                         </span>
 
                                         {p.tanggal_jatuh_tempo && (
@@ -97,10 +99,10 @@ function Saya({ aktif, riwayat, pengaturan }) {
                                             >
                                                 <Clock size={12} />
                                                 {sisa < 0
-                                                    ? `Terlambat ${Math.abs(sisa)} hari`
+                                                    ? t('peminjaman.due.late', { days: Math.abs(sisa) })
                                                     : sisa === 0
-                                                    ? 'Jatuh tempo hari ini'
-                                                    : `${sisa} hari lagi`}
+                                                    ? t('peminjaman.due.today')
+                                                    : t('peminjaman.due.remaining', { days: sisa })}
                                             </p>
                                         )}
 
@@ -112,10 +114,10 @@ function Saya({ aktif, riwayat, pengaturan }) {
                                             >
                                                 <RefreshCw size={12} />
                                                 {p.status_perpanjangan === 'menunggu'
-                                                    ? 'Menunggu Persetujuan'
+                                                    ? t('peminjaman.extend.waiting')
                                                     : p.jumlah_perpanjangan >= pengaturan.max_perpanjangan
-                                                    ? 'Batas Perpanjangan Tercapai'
-                                                    : 'Ajukan Perpanjangan'}
+                                                    ? t('peminjaman.extend.limitReached')
+                                                    : t('peminjaman.extend.request')}
                                             </button>
                                         )}
                                     </div>
@@ -127,11 +129,11 @@ function Saya({ aktif, riwayat, pengaturan }) {
             ) : (
                 <div className="space-y-3">
                     {riwayat.data.length === 0 ? (
-                        <EmptyState text="Belum ada riwayat peminjaman." />
+                        <EmptyState text={t('peminjaman.empty.history')} />
                     ) : (
                         <div className="overflow-hidden rounded-2xl border border-border bg-surface">
                             {riwayat.data.map((p) => {
-                                const status = STATUS_META[p.status] ?? STATUS_META.dikembalikan;
+                                const statusColor = STATUS_COLOR[p.status] ?? STATUS_COLOR.dikembalikan;
                                 return (
                                     <div key={p.id} className="flex items-center gap-3 border-b border-border/60 p-4 last:border-0">
                                         <BookCover
@@ -144,12 +146,12 @@ function Saya({ aktif, riwayat, pengaturan }) {
                                             <p className="text-xs text-muted">
                                                 {p.tanggal_pinjam ? new Date(p.tanggal_pinjam).toLocaleDateString('id-ID') : '—'}
                                                 {' — '}
-                                                {p.tanggal_kembali ? new Date(p.tanggal_kembali).toLocaleDateString('id-ID') : 'belum kembali'}
+                                                {p.tanggal_kembali ? new Date(p.tanggal_kembali).toLocaleDateString('id-ID') : t('peminjaman.history.notReturned')}
                                             </p>
                                         </div>
                                         <div className="shrink-0 text-right">
-                                            <span className={`inline-block rounded-full px-2 py-0.5 text-[10.5px] font-medium ${status.color}`}>
-                                                {status.label}
+                                            <span className={`inline-block rounded-full px-2 py-0.5 text-[10.5px] font-medium ${statusColor}`}>
+                                                {t(`peminjaman.status.${p.status}`)}
                                             </span>
                                             {p.denda > 0 && (
                                                 <p className="mt-1 text-xs font-medium text-red-500">

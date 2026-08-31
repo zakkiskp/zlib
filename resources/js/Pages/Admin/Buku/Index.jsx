@@ -6,8 +6,10 @@ import Pagination from '@/Components/Katalog/Pagination';
 import ConfirmDialog from '@/Components/ConfirmDialog';
 import { useConfirm } from '@/Hooks/useConfirm';
 import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 function AdminBukuIndex({ buku, filters }) {
+    const { t } = useLanguage();
     const [q, setQ] = useState(filters.q || '');
     const debounceRef = useRef(null);
     const { confirmState, confirm, handleConfirm, handleCancel } = useConfirm();
@@ -28,7 +30,7 @@ function AdminBukuIndex({ buku, filters }) {
     };
 
     const hapus = async (id, judul) => {
-        const ok = await confirm('Hapus Buku?', `"${judul}" akan dihapus dari katalog. Tindakan ini tidak bisa dibatalkan.`);
+        const ok = await confirm(t('adminbuku.confirmDelete.title'), t('adminbuku.confirmDelete.message', { judul }));
         if (ok) {
             router.delete(`/admin/buku/${id}`, { preserveScroll: true });
         }
@@ -38,15 +40,15 @@ function AdminBukuIndex({ buku, filters }) {
         <div className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 className="text-xl font-semibold text-ink">Master Data Buku</h2>
-                    <p className="text-sm text-muted">{buku.total} buku terdaftar di sistem.</p>
+                    <h2 className="text-xl font-semibold text-ink">{t('adminbuku.title')}</h2>
+                    <p className="text-sm text-muted">{t('adminbuku.subtitle', { total: buku.total })}</p>
                 </div>
                 <Link
                     href="/admin/buku/create"
                     prefetch
                     className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
                 >
-                    <Plus size={15} /> Tambah Buku
+                    <Plus size={15} /> {t('adminbuku.add')}
                 </Link>
             </div>
 
@@ -55,7 +57,7 @@ function AdminBukuIndex({ buku, filters }) {
                 <input
                     value={q}
                     onChange={onSearch}
-                    placeholder="Cari judul buku…"
+                    placeholder={t('adminbuku.search.placeholder')}
                     className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
             </div>
@@ -67,11 +69,11 @@ function AdminBukuIndex({ buku, filters }) {
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium text-ink">{b.judul_buku}</p>
                             <p className="truncate text-xs text-muted">
-                                {b.penulis} · {b.kategoris?.map((k) => k.nama_kategori).join(', ') || 'Tanpa kategori'}
+                                {b.penulis} · {b.kategoris?.map((k) => k.nama_kategori).join(', ') || t('adminbuku.noCategory')}
                             </p>
                         </div>
                         <span className="shrink-0 text-xs text-muted">
-                            {b.stok_tersedia}/{b.total_stok} stok
+                            {t('adminbuku.stock', { tersedia: b.stok_tersedia, total: b.total_stok })}
                         </span>
                         <Link
                             href={`/admin/buku/${b.id}/edit`}
