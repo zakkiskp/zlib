@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Check } from 'lucide-react';
 import { useTheme } from '@/Hooks/useTheme';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const ACCENT_META = {
     emerald: { label: 'Emerald', swatch: 'rgb(16 185 129)' },
@@ -12,6 +13,7 @@ const ACCENT_META = {
 
 export default function ThemeSwitcher() {
     const { mode, setMode, accent, setAccent, accents } = useTheme();
+    const { t } = useLanguage();
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
 
@@ -24,10 +26,22 @@ export default function ThemeSwitcher() {
     }, []);
 
     return (
-        <div className="relative" ref={ref}>
+        // FIX BUG (dropdown tema tenggelam di halaman Login/Register):
+        // container ini sebelumnya cuma "relative" tanpa z-index, jadi
+        // stacking-context-nya diam di level 0 (auto). Di AuthSplitLayout,
+        // wrapper <motion.div> untuk form (title + FloatingInput) yang
+        // dirender SESUDAH header di DOM ikut membentuk stacking context
+        // sendiri (gara-gara style transform/opacity dari Framer Motion),
+        // dan karena urutan DOM-nya lebih akhir, dia otomatis "menang"
+        // tampil di atas dropdown ini walau dropdown ini terbuka lebih
+        // dulu -> hasilnya dropdown kelihatan "ketutup"/tenggelam di
+        // belakang kotak input email/password. Solusinya: kasih z-50
+        // eksplisit di container SEKALIGUS di panel dropdown-nya (disamakan
+        // dengan pola NotificationBell.jsx yang sudah benar).
+        <div className="relative z-50" ref={ref}>
             <button
                 onClick={() => setOpen((v) => !v)}
-                aria-label="Ganti tema"
+                aria-label={t('common.changeTheme')}
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted hover:bg-surface2 hover:text-ink"
             >
                 {mode === 'dark' ? <Moon size={17} /> : <Sun size={17} />}
@@ -40,10 +54,10 @@ export default function ThemeSwitcher() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.98 }}
                         transition={{ duration: 0.14 }}
-                        className="absolute right-0 mt-2 w-64 rounded-xl border border-border bg-surface/95 p-3 shadow-soft backdrop-blur-md"
+                        className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-border bg-surface/95 p-3 shadow-soft backdrop-blur-md"
                     >
                         <p className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wider text-muted">
-                            Mode Tampilan
+                            {t('common.displayMode')}
                         </p>
                         <div className="grid grid-cols-2 gap-2">
                             <button
@@ -54,7 +68,7 @@ export default function ThemeSwitcher() {
                                         : 'border-border text-muted hover:text-ink'
                                 }`}
                             >
-                                <Sun size={15} /> Light
+                                <Sun size={15} /> {t('common.light')}
                             </button>
                             <button
                                 onClick={() => setMode('dark')}
@@ -64,12 +78,12 @@ export default function ThemeSwitcher() {
                                         : 'border-border text-muted hover:text-ink'
                                 }`}
                             >
-                                <Moon size={15} /> Dark
+                                <Moon size={15} /> {t('common.dark')}
                             </button>
                         </div>
 
                         <p className="mb-2 mt-4 px-1 text-[11px] font-medium uppercase tracking-wider text-muted">
-                            Warna Aksen
+                            {t('common.accentColor')}
                         </p>
                         <div className="grid grid-cols-4 gap-2">
                             {accents.map((a) => (

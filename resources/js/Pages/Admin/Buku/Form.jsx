@@ -290,6 +290,10 @@ function BukuForm({ buku, kategoriList, rakList }) {
     );
 }
 
-BukuForm.layout = (page) => <AuthenticatedLayout title="Form Buku">{page}</AuthenticatedLayout>;
+BukuForm.layout = (page) => (
+    <AuthenticatedLayout titleKey={page.props.buku ? 'adminbuku.form.editTitle' : 'adminbuku.form.createTitle'}>
+        {page}
+    </AuthenticatedLayout>
+);
 
 export default BukuForm;

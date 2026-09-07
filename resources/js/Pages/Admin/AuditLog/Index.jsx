@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import SearchableSelect from '@/Components/SearchableSelect';
@@ -100,8 +100,7 @@ export default function AuditLogIndex({ logs, filters, actionOptions }) {
   ];
 
   return (
-    <AuthenticatedLayout>
-      <Head title={t('auditlog.title')} />
+    <AuthenticatedLayout titleKey="auditlog.title">
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex items-center gap-3 mb-1">
@@ -141,21 +140,36 @@ export default function AuditLogIndex({ logs, filters, actionOptions }) {
             className="lg:w-52"
           />
 
-          <div className="flex items-center gap-2">
+          {/*
+            FIX BUG (filter meluber horizontal di mobile): baris ini
+            sebelumnya `flex items-center gap-2` polos tanpa flex-wrap.
+            Dua <input type="date"> punya lebar minimum bawaan browser yang
+            cukup besar (kalender + segmen tanggal) dan flex item secara
+            default punya `min-width: auto`, jadi dia menolak menyusut di
+            bawah lebar kontennya sendiri. Di layar HP sempit, total lebar
+            ikon + 2 input + separator gampang melebihi lebar kontainer,
+            dan karena tidak ada tempat scroll internal, seluruh halaman
+            ikut ter-dorong melebar (overflow horizontal). Perbaikan: kasih
+            `flex-wrap` sebagai jaring pengaman + `min-w-0 flex-1` di kedua
+            input supaya keduanya boleh menyusut berbagi ruang yang ada,
+            dan `w-full` di baris ini sendiri supaya konsisten selebar
+            saudara-saudaranya (search box, select) saat ditumpuk vertikal.
+          */}
+          <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-nowrap">
             <CalendarRange className="w-4 h-4 text-muted shrink-0" />
             <input
               type="date"
-              className={dateInputClass}
+              className={`${dateInputClass} min-w-0 flex-1 lg:flex-initial`}
               value={from}
               onChange={(e) => {
                 setFrom(e.target.value);
                 applyFilters({ from: e.target.value });
               }}
             />
-            <span className="text-muted text-sm">—</span>
+            <span className="text-muted text-sm shrink-0">—</span>
             <input
               type="date"
-              className={dateInputClass}
+              className={`${dateInputClass} min-w-0 flex-1 lg:flex-initial`}
               value={to}
               onChange={(e) => {
                 setTo(e.target.value);
@@ -166,7 +180,7 @@ export default function AuditLogIndex({ logs, filters, actionOptions }) {
 
           <button
             onClick={resetFilters}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted hover:bg-surface2 hover:text-ink transition-colors"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted hover:bg-surface2 hover:text-ink transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             {t('auditlog.reset')}

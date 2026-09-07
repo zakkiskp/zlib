@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import PdfReaderPanel from '@/Components/Katalog/PdfReaderPanel';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import { useLanguage } from '@/Contexts/LanguageContext';
 
 /**
@@ -17,9 +18,19 @@ export default function Baca({ buku, halamanTerakhir, catatanBacaan }) {
 
             <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-surface px-4">
                 <Link href="/katalog" prefetch className="flex shrink-0 items-center gap-1.5 text-sm text-muted hover:text-ink">
-                    <ArrowLeft size={16} /> {t('katalog.baca.backToCatalog')}
+                    <ArrowLeft size={16} />
+                    {/* FIX (tombol bahasa di reader butuh ruang): label teks
+                        disembunyikan di layar paling sempit, ikon panah saja
+                        tetap jadi affordance "kembali" yang jelas. */}
+                    <span className="hidden sm:inline">{t('katalog.baca.backToCatalog')}</span>
                 </Link>
-                <span className="min-w-0 truncate text-sm font-medium text-ink">{buku.judul_buku}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{buku.judul_buku}</span>
+                {/* FIX (tombol ganti bahasa di reader): sebelumnya halaman
+                    baca full-screen ini terpisah dari AuthenticatedLayout,
+                    jadi tidak mewarisi LanguageSwitcher dari Topbar sama
+                    sekali — pengguna terjebak tanpa cara ganti bahasa
+                    selama membaca. Sekarang ditambahkan langsung di sini. */}
+                <LanguageSwitcher />
             </div>
 
             <PdfReaderPanel buku={buku} halamanTerakhir={halamanTerakhir} catatanBacaan={catatanBacaan} />

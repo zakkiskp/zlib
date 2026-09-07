@@ -77,10 +77,19 @@ function Preservasi({ buku, filters, usulan }) {
 
                 <div className="overflow-hidden rounded-2xl border border-border bg-surface">
                     {buku.data.map((b) => (
-                        <div key={b.id} className="flex items-center gap-3 border-b border-border/60 p-3 last:border-0">
+                        // FIX BUG (dropdown Preservasi berantakan di mobile):
+                        // sebelumnya `flex items-center` kaku, select cuma
+                        // w-32 (128px) mepet di kanan dekat tepi layar —
+                        // walau posisi popover-nya sendiri sudah dibenerin
+                        // di SearchableSelect.jsx, kotak triggernya sendiri
+                        // masih terasa sempit untuk disentuh di HP. `flex-wrap`
+                        // + `w-full` di mobile bikin select turun ke baris
+                        // sendiri selebar penuh (nyaman disentuh), lalu balik
+                        // ke ukuran kompak inline mulai breakpoint `sm`.
+                        <div key={b.id} className="flex flex-wrap items-center gap-3 border-b border-border/60 p-3 last:border-0">
                             <BookCover src={b.cover_url} alt={b.judul_buku} className="h-14 w-10 shrink-0 rounded-md" />
-                            <p className="flex-1 truncate text-sm font-medium text-ink">{b.judul_buku}</p>
-                            <div className="w-32 shrink-0">
+                            <p className="min-w-[120px] flex-1 truncate text-sm font-medium text-ink">{b.judul_buku}</p>
+                            <div className="w-full pl-[52px] sm:w-32 sm:shrink-0 sm:pl-0">
                                 <SearchableSelect
                                     value={b.kondisi}
                                     onChange={(val) => ubahKondisi(b.id, val)}
@@ -142,6 +151,6 @@ function Preservasi({ buku, filters, usulan }) {
     );
 }
 
-Preservasi.layout = (page) => <AuthenticatedLayout title="Preservasi Buku">{page}</AuthenticatedLayout>;
+Preservasi.layout = (page) => <AuthenticatedLayout titleKey="preservasi.title">{page}</AuthenticatedLayout>;
 
 export default Preservasi;

@@ -4,10 +4,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/Components/Navigation/Sidebar';
 import BottomNav from '@/Components/Navigation/BottomNav';
 import Topbar from '@/Components/Navigation/Topbar';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
-export default function AuthenticatedLayout({ title, children }) {
+/**
+ * FIX BUG (i18n menyeluruh — judul halaman di Topbar & tab browser tidak
+ * ikut berganti bahasa): SEMUA halaman di app ini mendaftarkan layout-nya
+ * lewat pola statis `Page.layout = (page) => <AuthenticatedLayout title="...">`.
+ * Fungsi itu didefinisikan DI LUAR komponen React manapun, jadi TIDAK BISA
+ * memanggil hook seperti useLanguage()/t() di sana — akibatnya title
+ * selalu hardcoded dalam satu bahasa, walau tombol ganti bahasa di navbar
+ * ditekan. Solusinya dipindah ke sini: AuthenticatedLayout (yang MEMANG
+ * komponen React sungguhan) menerima `titleKey` (bukan teks jadi) lalu
+ * me-resolve terjemahannya sendiri lewat useLanguage(). Prop `title` lama
+ * masih didukung sebagai fallback (kalau suatu saat ada pemanggil yang
+ * sengaja butuh teks dinamis non-key, mis. judul yang sudah berisi nama
+ * buku), supaya tidak ada yang patah.
+ */
+export default function AuthenticatedLayout({ title, titleKey, children }) {
     const { url } = usePage();
     const pathname = url.split('?')[0];
+    const { t } = useLanguage();
+    const resolvedTitle = titleKey ? t(titleKey) : title;
 
     const [collapsed, setCollapsed] = useState(() => {
         if (typeof window === 'undefined') return false;
@@ -20,7 +37,7 @@ export default function AuthenticatedLayout({ title, children }) {
 
     return (
         <div className="min-h-screen bg-base">
-            <Head title={title} />
+            <Head title={resolvedTitle} />
 
             <Sidebar collapsed={collapsed} onToggleCollapsed={() => setCollapsed((v) => !v)} />
 
@@ -29,8 +46,22 @@ export default function AuthenticatedLayout({ title, children }) {
                     collapsed ? 'lg:pl-[76px]' : 'lg:pl-[264px]'
                 }`}
             >
-                <Topbar title={title} />
-                <main className="flex-1 px-4 py-6 pb-24 lg:px-6 lg:pb-6">
+                <Topbar title={resolvedTitle} />
+                {/*
+                  FIX BUG (halaman Admin System Audit Log & Reports meluber
+                  horizontal di mobile): tambahan `overflow-x-hidden` di
+                  sini adalah pengaman lapis kedua untuk SEMUA halaman yang
+                  memakai AuthenticatedLayout. Perbaikan utamanya tetap di
+                  masing-masing halaman (flex-wrap pada filter tanggal),
+                  tapi baris ini memastikan kalau ada elemen lain yang lolos
+                  menghitung lebar dengan salah, dampaknya cuma terpotong
+                  rapi di dalam <main> ini — bukan mendorong seluruh body
+                  jadi bisa di-scroll horizontal. Tabel yang memang sengaja
+                  butuh scroll ke samping tetap jalan normal karena
+                  scroll-nya ada di div overflow-x-auto miliknya sendiri,
+                  bukan di sini.
+                */}
+                <main className="flex-1 overflow-x-hidden px-4 py-6 pb-24 lg:px-6 lg:pb-6">
                     {/*
                       FIX PERFORMA #4 (transisi halaman terasa lambat):
                       - mode="wait" DIHAPUS -> diganti "popLayout". Sebelumnya

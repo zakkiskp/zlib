@@ -103,6 +103,6 @@ function PengelolaanDenda({ denda, filters, ringkasan }) {
     );
 }
 
-PengelolaanDenda.layout = (page) => <AuthenticatedLayout title="Pengelolaan Denda">{page}</AuthenticatedLayout>;
+PengelolaanDenda.layout = (page) => <AuthenticatedLayout titleKey="pengelolaandenda.title">{page}</AuthenticatedLayout>;
 
 export default PengelolaanDenda;

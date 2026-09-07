@@ -52,6 +52,6 @@ function KoleksiPribadi({ koleksi }) {
     );
 }
 
-KoleksiPribadi.layout = (page) => <AuthenticatedLayout title="Koleksi Pribadi">{page}</AuthenticatedLayout>;
+KoleksiPribadi.layout = (page) => <AuthenticatedLayout titleKey="koleksi.title">{page}</AuthenticatedLayout>;
 
 export default KoleksiPribadi;

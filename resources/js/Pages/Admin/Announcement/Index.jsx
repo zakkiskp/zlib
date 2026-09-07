@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Head, useForm, router, usePage } from '@inertiajs/react';
+import { useForm, router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import SearchableSelect from '@/Components/SearchableSelect';
@@ -19,8 +19,6 @@ import {
   Loader2,
 } from 'lucide-react';
 
-// TASK #1: <select> dihapus dari sini, dipindah ke dalam komponen supaya
-// bisa akses t() untuk label opsi (Info/Promo/Peringatan).
 const TYPE_ICON = { info: Info, promo: Sparkles, warning: AlertTriangle };
 const TYPE_CLASS = {
   info: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
@@ -77,7 +75,6 @@ function AnnouncementModal({ open, onClose, editingItem, t }) {
       form.reset();
       setPreview(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingItem, open]);
 
   function handleFile(e) {
@@ -140,7 +137,6 @@ function AnnouncementModal({ open, onClose, editingItem, t }) {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.banner')}</label>
-              {/* Kontainer preview tanpa background abu-abu sisa (fix Anda, dipertahankan) */}
               <div
                 onClick={() => fileRef.current?.click()}
                 className="cursor-pointer rounded-xl border-2 border-dashed border-border hover:border-accent transition-colors flex items-center justify-center overflow-hidden p-2 bg-transparent"
@@ -183,7 +179,6 @@ function AnnouncementModal({ open, onClose, editingItem, t }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-muted mb-1.5">{t('announcement.field.type')}</label>
-                {/* TASK #1: <select> HTML diganti SearchableSelect standar (v2, fix z-index) */}
                 <SearchableSelect
                   value={form.data.type}
                   onChange={(val) => form.setData('type', val)}
@@ -266,7 +261,6 @@ function AnnouncementCard({ item, onEdit, onDelete, t }) {
       exit={{ opacity: 0, y: -12 }}
       className="rounded-2xl border border-border/70 bg-surface/70 backdrop-blur-md overflow-hidden group flex flex-col"
     >
-      {/* Kontainer card menyesuaikan ukuran foto secara dinamis (fix Anda, dipertahankan) */}
       <div className="w-full relative overflow-hidden flex items-center justify-center p-3 bg-transparent">
         {bannerUrl ? (
           <img
@@ -324,8 +318,6 @@ export default function AnnouncementIndex({ announcements }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  // Modal hapus custom (pengganti useConfirm yang bermasalah) — pola ini
-  // PERSIS seperti fix Anda, tidak diubah sama sekali.
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
@@ -359,9 +351,7 @@ export default function AnnouncementIndex({ announcements }) {
   }
 
   return (
-    <AuthenticatedLayout>
-      <Head title={t('announcement.title')} />
-
+    <AuthenticatedLayout titleKey="announcement.title">
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">

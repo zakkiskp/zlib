@@ -110,6 +110,6 @@ function DataBuku({ buku, filters }) {
     );
 }
 
-DataBuku.layout = (page) => <AuthenticatedLayout title="Data Buku">{page}</AuthenticatedLayout>;
+DataBuku.layout = (page) => <AuthenticatedLayout titleKey="databuku.title">{page}</AuthenticatedLayout>;
 
 export default DataBuku;

@@ -180,6 +180,6 @@ function EmptyState({ text }) {
     );
 }
 
-Saya.layout = (page) => <AuthenticatedLayout title="Peminjaman Saya">{page}</AuthenticatedLayout>;
+Saya.layout = (page) => <AuthenticatedLayout titleKey="peminjaman.title">{page}</AuthenticatedLayout>;
 
 export default Saya;

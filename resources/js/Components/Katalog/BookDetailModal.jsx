@@ -4,8 +4,10 @@ import { X, BookOpen, Send, MapPin, Calendar, Hash, Loader2, Heart } from 'lucid
 import StarRating from '@/Components/Katalog/StarRating';
 import StarRatingInput from '@/Components/Katalog/StarRatingInput';
 import BookCover from '@/Components/BookCover';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function BookDetailModal({ buku, onClose }) {
+    const { t } = useLanguage();
     const [detail, setDetail] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -47,7 +49,7 @@ export default function BookDetailModal({ buku, onClose }) {
             { buku_id: buku.id },
             {
                 preserveScroll: true,
-                onSuccess: () => setPesan({ tipe: 'sukses', teks: 'Pengajuan berhasil dikirim!' }),
+                onSuccess: () => setPesan({ tipe: 'sukses', teks: t('katalog.detail.requestSuccess') }),
                 onError: (errors) => setPesan({ tipe: 'gagal', teks: Object.values(errors)[0] }),
                 onFinish: () => setSubmitting(false),
             },
@@ -95,7 +97,7 @@ export default function BookDetailModal({ buku, onClose }) {
                                 tersedia ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                             }`}
                         >
-                            {tersedia ? `${buku.stok_tersedia} dari ${buku.total_stok} tersedia` : 'Stok habis'}
+                            {tersedia ? t('katalog.detail.availableOf', { tersedia: buku.stok_tersedia, total: buku.total_stok }) : t('katalog.detail.outofstock')}
                         </span>
                     </div>
 
@@ -108,7 +110,7 @@ export default function BookDetailModal({ buku, onClose }) {
                             </div>
                             <button
                                 onClick={toggleFavorit}
-                                title="Simpan ke Koleksi Pribadi"
+                                title={t('katalog.detail.saveToCollection')}
                                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border hover:bg-surface2"
                             >
                                 <Heart size={16} className={favorit ? 'fill-red-500 text-red-500' : 'text-muted'} />
@@ -117,7 +119,7 @@ export default function BookDetailModal({ buku, onClose }) {
 
                         <div className="mt-2 flex items-center gap-3">
                             <StarRating rating={buku.rating_rata_rata} />
-                            <span className="text-xs text-muted">({buku.jumlah_ulasan} ulasan)</span>
+                            <span className="text-xs text-muted">{t('katalog.detail.reviews', { count: buku.jumlah_ulasan })}</span>
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted">
@@ -129,7 +131,7 @@ export default function BookDetailModal({ buku, onClose }) {
                             </span>
                             {detail?.buku?.rak && (
                                 <span className="flex items-center gap-1">
-                                    <MapPin size={12} /> Rak {detail.buku.rak.kode_rak}
+                                    <MapPin size={12} /> {t('katalog.detail.shelf', { kode: detail.buku.rak.kode_rak })}
                                 </span>
                             )}
                         </div>
@@ -145,16 +147,33 @@ export default function BookDetailModal({ buku, onClose }) {
                         )}
 
                         <p className="mt-4 text-sm leading-relaxed text-muted">
-                            {loading ? 'Memuat sinopsis…' : detail?.buku?.deskripsi}
+                            {loading ? t('katalog.detail.loadingSynopsis') : detail?.buku?.deskripsi}
                         </p>
 
                         <div className="mt-5 flex flex-wrap gap-2">
+                            {/*
+                              FIX BUG ("File PDF belum diunggah" padahal file
+                              sudah ada): Link ini sebelumnya pakai prop
+                              `prefetch`, yang membuat Inertia meng-cache
+                              respons halaman /katalog/{id}/baca selama 30
+                              detik (default prefetch.cacheFor). Begitu
+                              tombol ini sempat ter-hover SEBELUM admin
+                              selesai upload file PDF buku ini, klik
+                              berikutnya (walau sudah di-refresh manual)
+                              tetap disajikan dari cache lama yang
+                              file_pdf_url-nya masih null -> muncul pesan
+                              "belum diunggah" walau data di database sudah
+                              benar. Halaman baca-online ini bergantung pada
+                              data yang bisa berubah kapan saja lewat aksi
+                              admin lain, jadi TIDAK boleh di-cache — prop
+                              `prefetch` sengaja dihapus supaya setiap klik
+                              selalu mengambil data terbaru dari server.
+                            */}
                             <Link
                                 href={`/katalog/${buku.id}/baca`}
-                                prefetch
                                 className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
                             >
-                                <BookOpen size={15} /> Baca Online
+                                <BookOpen size={15} /> {t('katalog.detail.readOnline')}
                             </Link>
                             <button
                                 onClick={ajukanPeminjaman}
@@ -162,7 +181,7 @@ export default function BookDetailModal({ buku, onClose }) {
                                 className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                                {detail?.sudahDiajukan ? 'Sudah Diajukan' : 'Ajukan Peminjaman'}
+                                {detail?.sudahDiajukan ? t('katalog.detail.alreadyRequested') : t('katalog.detail.requestLoan')}
                             </button>
                         </div>
 
@@ -175,7 +194,7 @@ export default function BookDetailModal({ buku, onClose }) {
                         {detail?.bisaUlasan && (
                             <div className="mt-5 rounded-xl border border-border p-4">
                                 <p className="text-sm font-medium text-ink">
-                                    {detail?.ulasanSaya ? 'Ulasanmu' : 'Beri Ulasan'}
+                                    {detail?.ulasanSaya ? t('katalog.detail.myReview') : t('katalog.detail.giveReview')}
                                 </p>
                                 <div className="mt-2">
                                     <StarRatingInput value={ratingInput} onChange={setRatingInput} size={20} />
@@ -184,7 +203,7 @@ export default function BookDetailModal({ buku, onClose }) {
                                     value={komentarInput}
                                     onChange={(e) => setKomentarInput(e.target.value)}
                                     rows={3}
-                                    placeholder="Bagaimana pendapatmu tentang buku ini?"
+                                    placeholder={t('katalog.detail.reviewPlaceholder')}
                                     className="mt-2 w-full resize-none rounded-lg border border-border bg-base px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/20"
                                 />
                                 <button
@@ -192,17 +211,17 @@ export default function BookDetailModal({ buku, onClose }) {
                                     disabled={ratingInput === 0 || submittingUlasan}
                                     className="mt-2 rounded-lg bg-accent px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
                                 >
-                                    {submittingUlasan ? 'Menyimpan…' : detail?.ulasanSaya ? 'Update Ulasan' : 'Kirim Ulasan'}
+                                    {submittingUlasan ? t('katalog.detail.saving') : detail?.ulasanSaya ? t('katalog.detail.updateReview') : t('katalog.detail.sendReview')}
                                 </button>
                             </div>
                         )}
 
                         <div className="mt-6 border-t border-border pt-4">
-                            <p className="text-sm font-semibold text-ink">Ulasan Pembaca</p>
+                            <p className="text-sm font-semibold text-ink">{t('katalog.detail.readerReviews')}</p>
                             <div className="mt-3 space-y-4">
-                                {loading && <p className="text-sm text-muted">Memuat ulasan…</p>}
+                                {loading && <p className="text-sm text-muted">{t('katalog.detail.loadingReviews')}</p>}
                                 {!loading && detail?.ulasan?.length === 0 && (
-                                    <p className="text-sm text-muted">Belum ada ulasan untuk buku ini.</p>
+                                    <p className="text-sm text-muted">{t('katalog.detail.noReviews')}</p>
                                 )}
                                 {detail?.ulasan?.map((u) => (
                                     <div key={u.id} className="flex gap-3">

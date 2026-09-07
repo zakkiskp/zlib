@@ -163,6 +163,6 @@ function KategoriRak({ raks, kategori }) {
     );
 }
 
-KategoriRak.layout = (page) => <AuthenticatedLayout title="Kategori & Rak">{page}</AuthenticatedLayout>;
+KategoriRak.layout = (page) => <AuthenticatedLayout titleKey="kategorirak.title">{page}</AuthenticatedLayout>;
 
 export default KategoriRak;

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import SearchableSelect from '@/Components/SearchableSelect';
+import BookCover from '@/Components/BookCover';
 import { useLanguage } from '@/Contexts/LanguageContext';
+import { resolveMediaUrl } from '@/Utils/ui';
 import {
   ScanLine,
   Keyboard,
@@ -26,10 +28,27 @@ import { Html5Qrcode } from 'html5-qrcode';
 const SCANNER_ELEMENT_ID = 'zlib-qr-reader';
 const LAST_CAMERA_KEY = 'zlib_qr_last_camera';
 
-function resolveAvatar(path) {
-  if (!path) return null;
-  return /^https?:\/\//i.test(path) ? path : `/storage/${path}`;
-}
+/**
+ * FIX BUG (foto profil kosong / 404 saat scan atau input manual):
+ * Halaman ini sebelumnya punya resolveAvatar() versi sendiri yang cuma
+ * menempelkan "/storage/" di depan path mentah. Masalahnya, avatar_url
+ * di database TIDAK konsisten formatnya tergantung siapa yang meng-upload:
+ *   - Upload lewat profil Anggota/Petugas sendiri -> sudah tersimpan
+ *     sebagai "/storage/avatars/xxx.jpg" (pakai Storage::url()).
+ *   - Upload lewat Admin (ProfileSettingController) -> tersimpan sebagai
+ *     path mentah "avatars/xxx.jpg" (tanpa "/storage/").
+ *   - Data seeder -> URL eksternal penuh (https://i.pravatar.cc/...).
+ * resolveAvatar() versi lama menempelkan "/storage/" ke SEMUA path yang
+ * bukan http(s), jadi untuk kasus pertama hasilnya jadi dobel:
+ * "/storage//storage/avatars/xxx.jpg" -> file tidak ditemukan (404) ->
+ * foto kelihatan kosong. Ini persis kasus yang muncul saat kode member
+ * di-input manual (member yang avatar-nya diupload sendiri dari halaman
+ * Profil). Solusinya: pakai resolveMediaUrl() bersama dari Utils/ui.js
+ * yang sudah dipakai & terbukti benar di UserMenu, Sidebar, Admin/User,
+ * dan Admin/AuditLog — fungsi ini mengambil NAMA FILE saja lalu membangun
+ * ulang path kanonik "/storage/avatars/{filename}", jadi konsisten untuk
+ * ketiga format di atas.
+ */
 
 function ResultCard({ result, t }) {
   if (!result) return null;
@@ -61,7 +80,7 @@ function ResultCard({ result, t }) {
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface2 shrink-0 flex items-center justify-center font-bold text-muted">
             {m.avatar_url ? (
-              <img src={resolveAvatar(m.avatar_url)} className="w-full h-full object-cover" alt="" />
+              <img src={resolveMediaUrl(m.avatar_url)} className="w-full h-full object-cover" alt="" />
             ) : (
               m.name?.charAt(0)
             )}
@@ -89,8 +108,15 @@ function ResultCard({ result, t }) {
       className="rounded-2xl border border-accent/30 bg-accent/5 p-5"
     >
       <div className="flex items-center gap-4">
+        {/* FIX BUG (fallback cover archive.org/openlibrary yang error):
+            sebelumnya <img> mentah di sini tidak punya penanganan error
+            sama sekali — kalau cover_url mati (mis. ERR_NAME_NOT_RESOLVED
+            saat offline), yang tampil cuma ikon "gambar rusak" bawaan
+            browser. BookCover sudah lebih dulu punya onError + placeholder
+            yang dipakai konsisten di 12 tempat lain di app ini (Katalog,
+            Admin Data Buku, dll) — di sini tinggal disamakan. */}
         <div className="w-14 h-20 rounded-lg overflow-hidden bg-surface2 shrink-0">
-          {b.cover_url && <img src={b.cover_url} className="w-full h-full object-cover" alt="" />}
+          {b.cover_url && <BookCover src={b.cover_url} alt={b.judul_buku} className="w-full h-full" />}
         </div>
         <div>
           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent mb-0.5">
@@ -226,8 +252,7 @@ export default function QrScannerIndex() {
   }));
 
   return (
-    <AuthenticatedLayout>
-      <Head title={t('qrscanner.title')} />
+    <AuthenticatedLayout titleKey="qrscanner.title">
 
       <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">

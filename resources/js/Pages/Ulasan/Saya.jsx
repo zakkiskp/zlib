@@ -64,6 +64,6 @@ function UlasanSaya({ ulasan }) {
     );
 }
 
-UlasanSaya.layout = (page) => <AuthenticatedLayout title="Ulasan Saya">{page}</AuthenticatedLayout>;
+UlasanSaya.layout = (page) => <AuthenticatedLayout titleKey="ulasan.title">{page}</AuthenticatedLayout>;
 
 export default UlasanSaya;

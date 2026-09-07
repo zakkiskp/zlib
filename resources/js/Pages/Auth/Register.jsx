@@ -20,7 +20,7 @@ export default function Register() {
 
   return (
     <AuthSplitLayout title={t('auth.register.title')} description={t('auth.register.subtitle')}>
-      <Head title="Register" />
+      <Head title={t('authpages.register.title')} />
 
       <form onSubmit={submit} className="space-y-4">
         <FloatingInput

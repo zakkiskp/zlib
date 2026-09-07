@@ -41,6 +41,6 @@ function Dashboard({ role, data }) {
   );
 }
 
-Dashboard.layout = (page) => <AuthenticatedLayout title="Dashboard">{page}</AuthenticatedLayout>;
+Dashboard.layout = (page) => <AuthenticatedLayout titleKey="dashboard.title">{page}</AuthenticatedLayout>;
 
 export default Dashboard;

@@ -136,6 +136,6 @@ function KategoriIndex({ kategori }) {
     );
 }
 
-KategoriIndex.layout = (page) => <AuthenticatedLayout title="Master Data Kategori">{page}</AuthenticatedLayout>;
+KategoriIndex.layout = (page) => <AuthenticatedLayout titleKey="adminkategori.title">{page}</AuthenticatedLayout>;
 
 export default KategoriIndex;

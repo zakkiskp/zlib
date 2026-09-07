@@ -3,8 +3,10 @@ import { router } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import StarRating from '@/Components/Katalog/StarRating';
 import BookCover from '@/Components/BookCover';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function BookGridCard({ buku, onClick }) {
+    const { t } = useLanguage();
     const tersedia = buku.stok_tersedia > 0;
     const [favorit, setFavorit] = useState(Boolean(buku.is_favorit));
 
@@ -35,7 +37,7 @@ export default function BookGridCard({ buku, onClick }) {
                 <button
                     type="button"
                     onClick={toggleFavorit}
-                    aria-label="Simpan ke koleksi"
+                    aria-label={t('katalog.detail.saveToCollection')}
                     className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-surface/90 backdrop-blur-md"
                 >
                     <Heart size={14} className={favorit ? 'fill-red-500 text-red-500' : 'text-white drop-shadow'} />
@@ -45,7 +47,7 @@ export default function BookGridCard({ buku, onClick }) {
                         tersedia ? 'bg-emerald-500/90 text-white' : 'bg-red-500/90 text-white'
                     }`}
                 >
-                    {tersedia ? 'Tersedia' : 'Habis'}
+                    {tersedia ? t('katalog.badge.available') : t('katalog.badge.outofstock')}
                 </span>
             </div>
             <p className="mt-2 truncate text-sm font-medium text-ink">{buku.judul_buku}</p>

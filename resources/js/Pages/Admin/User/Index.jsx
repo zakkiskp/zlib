@@ -137,6 +137,6 @@ function UserIndex({ users, filters }) {
     );
 }
 
-UserIndex.layout = (page) => <AuthenticatedLayout title="User & Role Management">{page}</AuthenticatedLayout>;
+UserIndex.layout = (page) => <AuthenticatedLayout titleKey="adminuser.title">{page}</AuthenticatedLayout>;
 
 export default UserIndex;

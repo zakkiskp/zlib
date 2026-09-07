@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { resolveMediaUrl, inputClass } from '@/Utils/ui';
@@ -445,8 +445,7 @@ export default function ProfileSettingsIndex({ profile, settings }) {
   const { t } = useLanguage();
 
   return (
-    <AuthenticatedLayout>
-      <Head title="Profil & Pengaturan Sistem" />
+    <AuthenticatedLayout titleKey="profile.title">
 
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

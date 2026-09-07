@@ -1,7 +1,9 @@
 import StarRating from '@/Components/Katalog/StarRating';
 import BookCover from '@/Components/BookCover';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function BookTableRow({ buku, onClick }) {
+    const { t } = useLanguage();
     const tersedia = buku.stok_tersedia > 0;
 
     return (
@@ -30,7 +32,7 @@ export default function BookTableRow({ buku, onClick }) {
                         tersedia ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                     }`}
                 >
-                    {tersedia ? `${buku.stok_tersedia} tersedia` : 'Habis'}
+                    {tersedia ? t('katalog.table.stockAvailable', { count: buku.stok_tersedia }) : t('katalog.badge.outofstock')}
                 </span>
             </td>
         </tr>

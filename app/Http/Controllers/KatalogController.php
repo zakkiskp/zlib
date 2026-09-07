@@ -110,7 +110,11 @@ class KatalogController extends Controller
         $koleksi = KoleksiPribadi::where('user_id', Auth::id())->where('buku_id', $buku->id)->first();
 
         return Inertia::render('Katalog/Baca', [
-            'buku' => $buku->only(['id', 'judul_buku', 'file_pdf_url']),
+            // FIX BUG (isi bacaan PDF ikut i18n): sertakan file_pdf_url_en
+            // juga, supaya PdfReaderPanel.jsx bisa memilih versi yang
+            // sesuai dengan bahasa aktif di aplikasi (lihat komentar di
+            // komponen itu untuk detail alurnya).
+            'buku' => $buku->only(['id', 'judul_buku', 'file_pdf_url', 'file_pdf_url_en']),
             'halamanTerakhir' => $koleksi->halaman_terakhir ?? 1,
             'catatanBacaan' => $koleksi->catatan_bacaan ?? '',
         ]);

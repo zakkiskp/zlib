@@ -17,7 +17,7 @@ export default function Login({ status, canResetPassword }) {
 
   return (
     <AuthSplitLayout title={t('auth.login.title')} description={t('auth.login.subtitle')}>
-      <Head title="Login" />
+      <Head title={t('authpages.login.title')} />
 
       {status && (
         <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-600 dark:text-emerald-400">

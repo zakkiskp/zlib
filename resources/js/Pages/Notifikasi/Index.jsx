@@ -63,6 +63,6 @@ function NotifikasiIndex({ notifikasi }) {
     );
 }
 
-NotifikasiIndex.layout = (page) => <AuthenticatedLayout title="Notifikasi">{page}</AuthenticatedLayout>;
+NotifikasiIndex.layout = (page) => <AuthenticatedLayout titleKey="notifikasi.title">{page}</AuthenticatedLayout>;
 
 export default NotifikasiIndex;

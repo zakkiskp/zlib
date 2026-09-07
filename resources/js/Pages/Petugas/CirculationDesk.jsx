@@ -201,6 +201,6 @@ function EmptyState({ text }) {
     );
 }
 
-CirculationDesk.layout = (page) => <AuthenticatedLayout title="Circulation Desk">{page}</AuthenticatedLayout>;
+CirculationDesk.layout = (page) => <AuthenticatedLayout titleKey="circulation.title">{page}</AuthenticatedLayout>;
 
 export default CirculationDesk;

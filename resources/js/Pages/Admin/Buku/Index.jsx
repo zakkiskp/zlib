@@ -104,6 +104,6 @@ function AdminBukuIndex({ buku, filters }) {
     );
 }
 
-AdminBukuIndex.layout = (page) => <AuthenticatedLayout title="Master Data Buku">{page}</AuthenticatedLayout>;
+AdminBukuIndex.layout = (page) => <AuthenticatedLayout titleKey="adminbuku.title">{page}</AuthenticatedLayout>;
 
 export default AdminBukuIndex;

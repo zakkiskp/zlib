@@ -133,6 +133,10 @@ function ProfilIndex({ user }) {
     );
 }
 
-ProfilIndex.layout = (page) => <AuthenticatedLayout title="Profil Saya">{page}</AuthenticatedLayout>;
+ProfilIndex.layout = (page) => (
+    <AuthenticatedLayout titleKey={page.props.user?.role === 'petugas' ? 'profil.petugas.title' : 'profil.anggota.title'}>
+        {page}
+    </AuthenticatedLayout>
+);
 
 export default ProfilIndex;

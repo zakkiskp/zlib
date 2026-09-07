@@ -143,6 +143,6 @@ function KatalogIndex({ buku, kategoriList, filters }) {
     );
 }
 
-KatalogIndex.layout = (page) => <AuthenticatedLayout title="Katalog Buku">{page}</AuthenticatedLayout>;
+KatalogIndex.layout = (page) => <AuthenticatedLayout titleKey="katalog.title">{page}</AuthenticatedLayout>;
 
 export default KatalogIndex;

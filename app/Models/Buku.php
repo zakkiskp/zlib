@@ -25,6 +25,7 @@ class Buku extends Model
         'deskripsi',
         'cover_url',
         'file_pdf_url',
+        'file_pdf_url_en',
         'bahasa',
         'jumlah_halaman',
         'stok_tersedia',

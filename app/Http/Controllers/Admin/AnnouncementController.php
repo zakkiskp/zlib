@@ -16,6 +16,15 @@ class AnnouncementController extends Controller
 {
     public function index(): Response
     {
+        // OTOMATIS HAPUS: Bersihkan pengumuman yang end_date-nya sudah lewat dari hari ini
+        $expiredAnnouncements = Announcement::whereDate('end_date', '<', now())->get();
+        foreach ($expiredAnnouncements as $expired) {
+            if ($expired->banner_image) {
+                Storage::disk('public')->delete($expired->banner_image);
+            }
+            $expired->delete();
+        }
+
         return Inertia::render('Admin/Announcement/Index', [
             'announcements' => Announcement::with('creator:id,name')->latest()->get(),
         ]);
@@ -35,7 +44,7 @@ class AnnouncementController extends Controller
 
         AuditLogger::log('create', 'pengumuman', "Membuat pengumuman \"{$announcement->title}\".");
 
-        return back()->with('success', 'Pengumuman berhasil dibuat.');
+        return redirect()->back()->with('success', 'Pengumuman berhasil dibuat.');
     }
 
     public function update(Request $request, Announcement $announcement): RedirectResponse
@@ -53,7 +62,7 @@ class AnnouncementController extends Controller
 
         AuditLogger::log('update', 'pengumuman', "Memperbarui pengumuman \"{$announcement->title}\".");
 
-        return back()->with('success', 'Pengumuman berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Pengumuman berhasil diperbarui.');
     }
 
     public function destroy(Announcement $announcement): RedirectResponse
@@ -68,7 +77,7 @@ class AnnouncementController extends Controller
 
         AuditLogger::log('delete', 'pengumuman', "Menghapus pengumuman \"{$title}\".");
 
-        return back()->with('success', 'Pengumuman berhasil dihapus.');
+        return redirect()->back()->with('success', 'Pengumuman berhasil dihapus.');
     }
 
     private function validated(Request $request): array

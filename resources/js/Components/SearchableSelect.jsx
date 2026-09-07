@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Search, Check } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 /**
  * STANDAR DROPDOWN Z-LIB — pengganti <select> HTML bawaan di seluruh
@@ -35,12 +36,23 @@ export default function SearchableSelect({
   value,
   onChange,
   options = [],
-  placeholder = 'Pilih...',
-  searchPlaceholder = 'Cari...',
-  emptyText = 'Tidak ada hasil',
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   className = '',
   disabled = false,
 }) {
+  // FIX BUG (i18n): dulu placeholder/searchPlaceholder/emptyText punya
+  // default string Indonesia hardcoded ('Pilih...', dst). Caller yang
+  // tidak eksplisit mengisi prop ini (banyak dipakai apa adanya di
+  // seluruh app) jadi tetap tampil Indonesia walau bahasa aplikasi
+  // sudah dipindah ke EN. Sekarang default-nya diambil dari kamus i18n,
+  // sementara caller yang MEMANG sengaja mengisi teks kustom (mis. "Pilih
+  // kategori...") tetap dihormati apa adanya.
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder ?? t('common.select');
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t('common.search');
+  const resolvedEmptyText = emptyText ?? t('common.noResults');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
@@ -62,10 +74,27 @@ export default function SearchableSelect({
     const spaceBelow = window.innerHeight - rect.bottom;
     const openUpward = spaceBelow < 260 && rect.top > 260;
 
+    // FIX BUG (dropdown "berantakan"/keluar layar di mobile, mis. halaman
+    // Preservasi Buku): sebelumnya `left` selalu = posisi kiri tombol
+    // trigger apa adanya, sedangkan lebar panel MINIMAL 180px (lihat
+    // panelWidth di bawah) walau tombol triggernya sendiri lebih sempit
+    // (mis. w-32 = 128px). Kalau trigger itu ada di dekat tepi kanan layar
+    // (persis kasus kolom kondisi di halaman Preservasi), panel 180px
+    // yang nempel dari sisi kiri trigger jadi nge-print keluar tepi kanan
+    // viewport. Sekarang di-clamp supaya panel selalu penuh terlihat,
+    // minimal 8px dari tepi kiri/kanan layar, di mana pun triggernya berada.
+    const panelWidth = Math.max(rect.width, 180);
+    const viewportPadding = 8;
+    let left = rect.left;
+    const maxLeft = window.innerWidth - panelWidth - viewportPadding;
+    if (left > maxLeft) left = Math.max(viewportPadding, maxLeft);
+    if (left < viewportPadding) left = viewportPadding;
+
     setCoords({
       top: openUpward ? rect.top - 6 : rect.bottom + 6,
-      left: rect.left,
+      left,
       width: rect.width,
+      panelWidth,
       openUpward,
     });
   }, []);
@@ -130,7 +159,7 @@ export default function SearchableSelect({
         className="w-full flex items-center justify-between gap-2 rounded-lg bg-base border border-border px-3.5 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className={`truncate ${selectedOption ? 'text-ink' : 'text-muted'}`}>
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption ? selectedOption.label : resolvedPlaceholder}
         </span>
         <ChevronDown className={`w-4 h-4 text-muted shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -149,7 +178,7 @@ export default function SearchableSelect({
                 top: coords.openUpward ? undefined : coords.top,
                 bottom: coords.openUpward ? window.innerHeight - coords.top : undefined,
                 left: coords.left,
-                width: Math.max(coords.width, 180),
+                width: coords.panelWidth || Math.max(coords.width, 180),
               }}
               // z-[9999] + portal ke <body> -> TIDAK MUNGKIN lagi ketutup
               // tabel/kartu apa pun, karena sudah lepas dari stacking
@@ -164,13 +193,13 @@ export default function SearchableSelect({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
-                  placeholder={searchPlaceholder}
+                  placeholder={resolvedSearchPlaceholder}
                   className="w-full rounded-lg bg-base border-0 pl-8 pr-3 py-1.5 text-sm text-ink placeholder-muted focus:outline-none focus:ring-1 focus:ring-accent/40"
                 />
               </div>
               <div className="max-h-56 overflow-y-auto py-1">
                 {filtered.length === 0 && (
-                  <p className="px-3.5 py-3 text-sm text-muted text-center">{emptyText}</p>
+                  <p className="px-3.5 py-3 text-sm text-muted text-center">{resolvedEmptyText}</p>
                 )}
                 {filtered.map((opt) => {
                   const isSelected = String(opt.value) === String(value);

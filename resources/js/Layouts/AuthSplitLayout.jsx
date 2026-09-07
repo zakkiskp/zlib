@@ -4,6 +4,7 @@ import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { BookOpen, Users, ShieldCheck, QrCode, BarChart3, Bell, Sparkles } from 'lucide-react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ThemeSwitcher from '@/Components/Navigation/ThemeSwitcher';
+import useIsMobile from '@/Hooks/useIsMobile';
 
 /**
  * Layout mandiri untuk halaman Login & Register — TIDAK bergantung pada
@@ -48,6 +49,11 @@ export default function AuthSplitLayout({ children, title, description }) {
   const rotateX = useTransform(mouseY, [-150, 150], [10, -10]);
   const rotateY = useTransform(mouseX, [-150, 150], [-10, 10]);
   const panelRef = useRef(null);
+  // FIX (animasi transisi halus khusus mobile): dipakai untuk cascading
+  // fade-in bertahap (header -> judul -> form) HANYA di layar mobile.
+  // Desktop sengaja dibiarkan seperti semula (initial={false} di bawah)
+  // supaya tidak mengubah tampilan yang sudah ada di sana.
+  const isMobile = useIsMobile();
 
   function handleMouseMove(e) {
     const rect = panelRef.current.getBoundingClientRect();
@@ -101,7 +107,12 @@ export default function AuthSplitLayout({ children, title, description }) {
       {/* Sisi Kiri — Form */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12 overflow-y-auto">
         <div className="w-full max-w-sm mx-auto">
-          <div className="flex items-center justify-between mb-10">
+          <motion.div
+            initial={isMobile ? { opacity: 0, y: -10 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="flex items-center justify-between mb-10"
+          >
             <Link href="/" className="inline-flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-white font-bold text-sm shadow-glow-accent">
                 ZL
@@ -114,12 +125,23 @@ export default function AuthSplitLayout({ children, title, description }) {
               <ThemeSwitcher />
               <LanguageSwitcher />
             </div>
-          </div>
+          </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: isMobile ? 0.12 : 0, ease: [0.22, 1, 0.36, 1] }}
+          >
             <h1 className="text-2xl font-bold text-ink">{title}</h1>
             {description && <p className="mt-1.5 text-sm text-muted">{description}</p>}
-            <div className="mt-8">{children}</div>
+            <motion.div
+              initial={isMobile ? { opacity: 0, y: 14 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: isMobile ? 0.22 : 0, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8"
+            >
+              {children}
+            </motion.div>
           </motion.div>
         </div>
       </div>

@@ -6,6 +6,7 @@ use App\Models\Buku;
 use App\Models\KategoriBuku;
 use App\Models\Rak;
 use App\Models\User;
+use App\Services\SampleBookPdfGenerator;
 use Illuminate\Database\Seeder;
 
 class BukuSeeder extends Seeder
@@ -23,6 +24,14 @@ class BukuSeeder extends Seeder
      *
      * kategori di-attach() lewat relasi many-to-many kategori_buku_relasi
      * (setiap buku minimal dapat 1 kategori, admin bisa tambah lebih lewat panel nanti).
+     *
+     * v5: FIX BUG (fitur Baca Online selalu "File PDF belum diunggah"):
+     * setiap buku sekarang otomatis dibuatkan PDF "Pratinjau Baca" lewat
+     * SampleBookPdfGenerator (lihat class itu untuk penjelasan lengkap
+     * kenapa isinya placeholder, bukan teks asli buku yang berhak cipta).
+     * Kalau project sudah pernah di-seed sebelumnya dan tidak ingin
+     * reseed dari nol, jalankan saja secara terpisah:
+     *   php artisan buku:generate-sample-pdfs
      */
     public function run(): void
     {
@@ -134,6 +143,12 @@ class BukuSeeder extends Seeder
 
             $kategoriId = $kategoriMap[$item['kategori']] ?? $kategoriMap->first();
             $buku->kategoris()->attach($kategoriId);
+
+            // FIX BUG (Baca Online selalu "belum diunggah"): langsung isi
+            // file_pdf_url dengan PDF pratinjau otomatis saat seeding,
+            // supaya begitu selesai `db:seed` semua 38 buku sudah bisa
+            // langsung dibuka di PDF Reader tanpa langkah tambahan.
+            SampleBookPdfGenerator::generate($buku);
         }
     }
 }

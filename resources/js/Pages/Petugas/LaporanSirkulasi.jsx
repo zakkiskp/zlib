@@ -96,6 +96,6 @@ function LaporanSirkulasi({ ringkasan, bukuTerpopuler, filters }) {
     );
 }
 
-LaporanSirkulasi.layout = (page) => <AuthenticatedLayout title="Laporan Sirkulasi">{page}</AuthenticatedLayout>;
+LaporanSirkulasi.layout = (page) => <AuthenticatedLayout titleKey="laporansirkulasi.title">{page}</AuthenticatedLayout>;
 
 export default LaporanSirkulasi;

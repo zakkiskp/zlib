@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLanguage } from '@/Contexts/LanguageContext';
@@ -54,8 +54,7 @@ export default function ReportIndex({ transactions, filters, summary }) {
   }
 
   return (
-    <AuthenticatedLayout>
-      <Head title={t('report.title')} />
+    <AuthenticatedLayout titleKey="report.title">
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex items-center gap-3 mb-6">
@@ -68,32 +67,53 @@ export default function ReportIndex({ transactions, filters, summary }) {
           </div>
         </div>
 
-        {/* Filter & Export Bar */}
+        {/*
+          FIX BUG (filter & tombol export meluber horizontal di mobile):
+          sama seperti Audit Log — baris tanggal di bawah ini sebelumnya
+          `flex items-center gap-2` tanpa flex-wrap, dan 2 <input
+          type="date"> plus tombol "Terapkan" gampang melebihi lebar layar
+          HP karena flex item tidak mau menyusut di bawah lebar konten
+          bawaannya (min-width: auto). Solusi: flex-wrap sebagai jaring
+          pengaman + min-w-0 flex-1 di kedua input. Baris tombol export
+          juga dibuat flex-wrap + full-width merata di mobile (grid 2 kolom
+          rasanya, tapi cukup pakai flex-1 di masing-masing <a>) supaya
+          tidak dempet ke luar layar saat labelnya panjang.
+        */}
         <div className="rounded-2xl border border-border/70 bg-surface/70 backdrop-blur-md p-4 flex flex-col md:flex-row md:items-center gap-3 justify-between mb-5">
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:flex-nowrap">
             <CalendarRange className="w-4 h-4 text-muted shrink-0" />
-            <input type="date" className={dateInputClass} value={from} onChange={(e) => setFrom(e.target.value)} />
-            <span className="text-muted text-sm">—</span>
-            <input type="date" className={dateInputClass} value={to} onChange={(e) => setTo(e.target.value)} />
+            <input
+              type="date"
+              className={`${dateInputClass} min-w-0 flex-1 md:flex-initial`}
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
+            <span className="text-muted text-sm shrink-0">—</span>
+            <input
+              type="date"
+              className={`${dateInputClass} min-w-0 flex-1 md:flex-initial`}
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
             <button
               onClick={applyFilter}
-              className="px-3.5 py-2 text-sm font-medium rounded-lg bg-ink text-base hover:opacity-90 transition-opacity"
+              className="shrink-0 px-3.5 py-2 text-sm font-medium rounded-lg bg-ink text-base hover:opacity-90 transition-opacity"
             >
               {t('report.apply')}
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
             <a
               href={exportUrl('pdf')}
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-ink hover:bg-surface2 transition-colors"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-ink hover:bg-surface2 transition-colors md:flex-initial"
             >
               <FileText className="w-4 h-4" />
               {t('report.exportPdf')}
             </a>
             <a
               href={exportUrl('excel')}
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-white shadow-glow-accent hover:brightness-110 transition-all"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-3.5 py-2 text-sm font-semibold text-white shadow-glow-accent hover:brightness-110 transition-all md:flex-initial"
             >
               <FileDown className="w-4 h-4" />
               {t('report.exportExcel')}
